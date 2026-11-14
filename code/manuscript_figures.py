@@ -34,48 +34,9 @@ def export(fig,name):
 
 
 def flow_figure():
-    fig,ax=plt.subplots(figsize=(9.4,7.4))
-    ax.set(xlim=(0,1),ylim=(0,1));ax.axis('off')
-    def box(x,y,w,h,text,color=BLUE,fill='#f0f5f9',size=12):
-        ax.add_patch(FancyBboxPatch((x,y),w,h,boxstyle='round,pad=0.008,rounding_size=0.008',
-                                   linewidth=1.1,edgecolor=color,facecolor=fill))
-        ax.text(x+w/2,y+h/2,text,ha='center',va='center',fontsize=size,linespacing=1.3)
-    def arrow(start,end):
-        ax.annotate('',xy=end,xytext=start,arrowprops=dict(arrowstyle='-|>',lw=1.15,color='#536575',shrinkA=1,shrinkB=1))
-    ppmi_center,training_center,internal_center,external_center=.3125,.1775,.4825,.815
-    ax.text(ppmi_center,1.015,'PPMI development',ha='center',va='top',weight='bold',fontsize=14)
-    ax.text(external_center,1.015,'External validation',ha='center',va='top',weight='bold',fontsize=14)
-    box(.025,.88,.575,.08,'Updated raw PPMI records\n2,263 participants classified as PD')
-    box(.655,.88,.32,.08,'Published FAHHAUST\n197 participants with PD',color=ORANGE,fill='#fbf2ec')
-    arrow((ppmi_center,.872),(ppmi_center,.848))
-    box(.025,.75,.575,.09,'Eligible cognitive and blood matches: 1,385\nCOG+: 679 / COG−: 706\n878 without eligible matches')
-    arrow((ppmi_center,.742),(ppmi_center,.718))
-    box(.025,.63,.575,.08,'Outcome-stratified 70:30 split\nTraining: 969 / Internal test: 416')
-    ax.plot([ppmi_center,ppmi_center],[.622,.595],lw=1.15,color='#536575')
-    ax.plot([training_center,internal_center],[.595,.595],lw=1.15,color='#536575')
-    arrow((training_center,.595),(training_center,.568))
-    arrow((internal_center,.595),(internal_center,.568))
-    box(.025,.47,.305,.09,'PPMI training sample\nn = 969\nCOG+: 475 / COG−: 494',size=11.8)
-    box(.365,.47,.235,.09,'Internal PPMI test\nn = 416\nCOG+: 204 / COG−: 212',size=11.2)
-    box(.655,.6925,.32,.055,'External records reserved for evaluation',color=ORANGE,fill='#fbf2ec',size=11.5)
-    arrow((external_center,.872),(external_center,.7555))
-    arrow((external_center,.6845),(external_center,.568))
-    box(.655,.47,.32,.09,'External FAHHAUST\nn = 197\nCOG+: 122 / COG−: 75',color=ORANGE,fill='#fbf2ec',size=11.8)
-    arrow((training_center,.462),(training_center,.413))
-    box(.025,.29,.305,.115,'Training-only development\nFold-fitted preprocessing\nMean five-fold AUROC tuning\nSix algorithms + LR references',size=11.5)
-    arrow((training_center,.282),(training_center,.243))
-    box(.025,.125,.305,.11,'Final fit on all 969 participants\nTraining OOF Youden thresholds\nFrozen models and preprocessing',size=11.2)
-    box(.365,.125,.235,.11,'Internal evaluation\nn = 416',size=12)
-    box(.655,.125,.32,.11,'External validation\nn = 197',color=ORANGE,fill='#fbf2ec',size=12)
-    arrow((internal_center,.462),(internal_center,.243))
-    arrow((external_center,.462),(external_center,.243))
-    arrow((.338,.18),(.357,.18))
-    ax.plot([training_center,training_center,external_center],[.117,.075,.075],lw=1.15,color='#536575')
-    arrow((external_center,.075),(external_center,.117))
-    ax.text(.5,.025,'COG = MoCA <26 OR cognitive-item score ≥1; both components observed.',
-            ha='center',va='center',fontsize=11)
-    fig.subplots_adjust(left=.01,right=.99,top=.99,bottom=.01)
-    export(fig,'figure1_study_design')
+    # Keep the E-series-style SVG as the sole maintained workflow source.
+    from main_presentation_figures import workflow_figure
+    workflow_figure()
 
 
 def comparison_figure():

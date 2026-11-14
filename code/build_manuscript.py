@@ -19,13 +19,18 @@ def markdown_exports():
         link='https://doi.org/'+doi[1] if doi else re.search(r'https?://[^}\s]+',body)[0]
         references[key]=f'[{key}]({link})'
     table_text={name:(MANUSCRIPT/f'tables/{name}.md').read_text(encoding='utf-8')
-                for name in ['table1','table2','table3','table3_differences']}
+                for name in ['table1','table2','table3','table3_differences','table4']}
     inline_tables={'table1':table_text['table1'],'table2':table_text['table2'],
-                   'table3_combined':table_text['table3']+'\n'+table_text['table3_differences']}
+                   'table3_combined':table_text['table3']+'\n'+table_text['table3_differences'],
+                   'table4':table_text['table4']}
     inline_figures={r'\StudyDesignFigure':'![Figure 1. Study design and participant flow]('+
                     (MANUSCRIPT/'figures/figure1_study_design.png').as_posix()+')',
                     r'\PerformanceFigure':'![Figure 2. Discrimination and age by COG status]('+
-                    (MANUSCRIPT/'figures/figure2_performance_case_mix.png').as_posix()+')'}
+                    (MANUSCRIPT/'figures/figure2_performance_case_mix.png').as_posix()+')',
+                    r'\ROCFigure':'![Figure 3. Internal and external ROC curves]('+
+                    (MANUSCRIPT/'figures/figure3_roc.png').as_posix()+')',
+                    r'\CalibrationFigure':'![Figure 4. Calibration of nested LR models]('+
+                    (MANUSCRIPT/'figures/figure4_calibration.png').as_posix()+')'}
     sections={}
     for name in ['abstract','introduction','methods','results','discussion','conclusion','declarations']:
         text=(MANUSCRIPT/f'sections/{name}.tex').read_text(encoding='utf-8')
@@ -35,8 +40,8 @@ def markdown_exports():
         text=re.sub(r'\\cite\{([^}]+)\}',lambda m:', '.join(references[k] for k in m[1].split(',')),text)
         text=re.sub(r'\\emph\{([^}]+)\}',r'*\1*',text)
         text=re.sub(r'\\textbf\{([^}]+)\}',r'**\1**',text)
-        text=re.sub(r'\\ref\{tab:([^}]+)\}',lambda m:{'table1':'1','table2':'2','table3':'3'}[m[1]],text)
-        text=re.sub(r'\\ref\{fig:([^}]+)\}',lambda m:{'design':'1','performance':'2'}[m[1]],text)
+        text=re.sub(r'\\ref\{tab:([^}]+)\}',lambda m:{'table1':'1','table2':'2','table3':'3','table4':'4'}[m[1]],text)
+        text=re.sub(r'\\ref\{fig:([^}]+)\}',lambda m:{'design':'1','performance':'2','roc':'3','calibration':'4'}[m[1]],text)
         text=re.sub(r'\\url\{([^}]+)\}',lambda m:'['+m[1]+']('+m[1]+')',text)
         text=re.sub(r'\\href\{([^}]+)\}\{([^}]+)\}',lambda m:'['+m[2]+']('+m[1].replace(r'\#','#')+')',text)
         for key,value in inline_tables.items():
@@ -51,7 +56,7 @@ def markdown_exports():
     (MANUSCRIPT/'methods_results.md').write_text(sections['methods']+'\n'+sections['results'],encoding='utf-8')
     tables=[]
     for name,label in [('table1','Table 1'),('table2','Table 2'),('table3','Table 3, panel A'),
-                       ('table3_differences','Table 3, panel B')]:
+                       ('table3_differences','Table 3, panel B'),('table4','Table 4')]:
         text=table_text[name]
         tables.append('## '+label+'\n\n'+text)
     (MANUSCRIPT/'main_tables.md').write_text('\n'.join(tables),encoding='utf-8')
@@ -77,7 +82,7 @@ def main():
     if compiler is None or extractor is None:
         raise RuntimeError('latexmk and pdftotext are required')
     sources={p.relative_to(ROOT).as_posix():sha(p) for p in MANUSCRIPT.rglob('*')
-             if p.is_file() and (p.suffix in ['.tex','.bib','.bst'] or (p.parent.name=='figures' and p.suffix=='.pdf'))}
+             if p.is_file() and (p.suffix in ['.tex','.bib','.bst'] or (p.parent.name=='figures' and p.suffix in {'.pdf','.svg'}))}
     records={}
     for name in ['manuscript','supplementary_materials']:
         build=ROOT/'tmp/latex'/name
@@ -97,9 +102,9 @@ def main():
         text=text_path.read_text(encoding='utf-8')
         if name=='manuscript':
             required=['Abstract','Introduction','Methods','Results','Discussion','Conclusion','0.724','0.656',
-                      '969','416','197','0.124','0.007','100','Figure 1.','Figure 2.']
+                      '969','416','197','0.124','0.007','100','Figure 1.','Figure 2.','Figure 3.','Figure 4.','Table 4.']
         else:
-            required=['Supplementary','S1','S2','S3','S4','S5','S6','S7','0.626','0.779','Figure S1.']
+            required=['Supplementary','S1','S2','S3','S4','S5','S6','0.626','0.779','Figure 4 of the main manuscript']
         assert all(term in text for term in required),(name,'missing PDF content')
         assert all(sha(ROOT/rel)==expected for rel,expected in sources.items()),'Source changed during build'
         destination=MANUSCRIPT/(name+'.pdf')

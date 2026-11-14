@@ -52,14 +52,14 @@ def main():
     fig.legend(handles,legend,loc='lower center',ncol=3,frameon=False,bbox_to_anchor=(.5,.0))
     fig.subplots_adjust(left=.085,right=.985,top=.87,bottom=.22,wspace=.33)
     for extension in ['pdf','png']:
-        fig.savefig(FIG/('figure_s1_calibration.'+extension),dpi=600,bbox_inches='tight',pad_inches=.08)
-    fig.savefig(ROOT/'tmp/preview_figure_s1_calibration.png',dpi=150,bbox_inches='tight',pad_inches=.08)
+        fig.savefig(FIG/('figure4_calibration.'+extension),dpi=600,bbox_inches='tight',pad_inches=.08)
+    fig.savefig(ROOT/'tmp/preview_figure4_calibration.png',dpi=150,bbox_inches='tight',pad_inches=.08)
     plt.close(fig)
     pd.DataFrame(rows).to_csv(OUT/'calibration_bins.csv',index=False)
     write_json(OUT/'calibration_figure_manifest.json',dict(status='generated',code_sha256=sha(__file__),
                input_sha256=inputs,maximum_bins=5,interval='Wilson 95%; descriptive evaluation sample',
                model_or_threshold_updates=0,output_sha256={p.relative_to(ROOT).as_posix():sha(p) for p in
-                   [FIG/'figure_s1_calibration.pdf',FIG/'figure_s1_calibration.png']}))
+                   [FIG/'figure4_calibration.pdf',FIG/'figure4_calibration.png']}))
     print(json.dumps(dict(event='BAYES100_CALIBRATION_FIGURE_GENERATED',models=3,cohorts=2,model_refits=0)),flush=True)
 
 

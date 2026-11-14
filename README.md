@@ -10,11 +10,13 @@ The final training runner is `code/bayes100.py`. Each of eight strategies uses 1
 
 Use Python 3.12 and the dependencies in `requirements.txt`. `environment_snapshot.json` records the package versions used for the completed study. The retained `pilot.py`, `prepare_current_ppmi.py`, `six_model_tables.py`, and `manuscript_statistics.py` provide imports needed by the final workflow; their historical main functions are not the final model-development procedure.
 
+The current four-figure presentation uses `code/main_presentation_figures.py` to export the editable [study workflow SVG](manuscript/figures/figure1_study_design.svg) with Inkscape and to draw internal/external ROC curves from the retained evaluation predictions. All 16 empirical AUROCs are checked against the saved results. This step does not refit models or change thresholds. The calibration plot is Figure 4, and the retained case-mix table is Table 4.
+
 ## Data access
 
 PPMI exports must be obtained by authorized researchers through the [PPMI data portal](https://www.ppmi-info.org/access-data-specimens/download-data), subject to its access conditions. The external FAHHAUST-PD worksheet is identified in [Wang and Yan's supplementary materials](https://doi.org/10.3389/fnagi.2025.1688653). Place authorized inputs at the paths documented in the reproduction guide. Restricted records, participant identifiers, individual predictions, and fitted model objects are not distributed here.
 
-This is a code release. The manuscript-building scripts also require the manuscript sources, figure assets, and aggregate result files from the author workflow; those assets are not part of this code repository. Reproducing model estimates from fresh inputs requires running the documented analysis, rather than running the manuscript builder alone.
+This is a code release with the editable workflow SVG. The manuscript-building scripts also require the remaining manuscript sources, figure assets, and aggregate result files from the author workflow; those additional assets are not part of this code repository. Reproducing model estimates from fresh inputs requires running the documented analysis, rather than running the manuscript builder alone.
 
 ## Contact
 

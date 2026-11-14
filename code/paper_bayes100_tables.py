@@ -41,9 +41,23 @@ def markdown_table(path,title,headers,rows,notes):
     path.write_text('\n'.join(lines+['',notes,'']),encoding='utf-8')
 
 
+def write_case_mix_table():
+    """Promote the retained six-row descriptive table without recalculation."""
+    display.OUT=OUT
+    frame=pd.read_csv(ROOT/'manuscript/results/manuscript_statistics/table_s_case_mix_formatted.csv',
+                      dtype=str,keep_default_na=False)
+    assert len(frame)==6
+    display.table('table4','Age and cognitive-component distributions by outcome',
+                  frame.columns.tolist(),frame.values.tolist(),
+                  r'P{0.12\textwidth}P{0.07\textwidth}P{0.07\textwidth}P{0.23\textwidth}P{0.18\textwidth}P{0.23\textwidth}',
+                  'Both positive means MoCA <26 and cognitive-item score >=1. Percentages in this column use the number of COG-positive participants as the denominator. '
+                  'Age summaries use available values before imputation or capping; MoCA was complete.',long=False)
+
+
 def main():
     assert json.loads((OUT/'summary_validation.json').read_text())['status']=='computed_and_numerically_checked'
     display.OUT=OUT
+    write_case_mix_table()
     perf=pd.read_csv(OUT/'all_model_performance.csv')
     assert len(perf)==16 and set(perf.model)==set(REFERENCES+ALGORITHMS)
     headers=['Sample','Algorithm','AUROC (95% CI)','Brier','Accuracy, %','Sensitivity, %','Specificity, %']

@@ -53,6 +53,12 @@ def main():
     assert calfig['model_or_threshold_updates']==0
     for key in ['input_sha256','output_sha256']:
         for path,expected in calfig[key].items():assert sha(ROOT/path)==expected,path
+    presentation=json.loads((OUT/'presentation_figure_manifest.json').read_text())
+    assert presentation['empirical_ROC_curves']==16
+    assert presentation['model_refits']==presentation['threshold_updates']==0
+    assert len(presentation['AUROC_checks'])==16 and all(r['agrees_with_retained_result'] for r in presentation['AUROC_checks'])
+    for key in ['input_sha256','output_sha256']:
+        for path,expected in presentation[key].items():assert sha(ROOT/path)==expected,path
     bins=pd.read_csv(OUT/'calibration_bins.csv')
     assert len(bins.groupby(['cohort','model']))==6
     assert all(n in [416,197] for n in bins.groupby(['cohort','model']).n.sum())
@@ -65,11 +71,11 @@ def main():
         text=(ROOT/f'tmp/latex/{name}/extracted.txt').read_text(encoding='utf-8')
         aux=(ROOT/f'tmp/latex/{name}/{name}.aux').read_text(encoding='utf-8')
         labels=set(re.findall(r'\\newlabel\{tab:[^}]+\}\{\{(S?\d+)\}',aux))
-        assert labels==({'1','2','3'} if name=='manuscript' else {f'S{i}' for i in range(1,8)})
+        assert labels==({'1','2','3','4'} if name=='manuscript' else {f'S{i}' for i in range(1,7)})
         assert not re.search(r'TabPFN|TabICL|TabFM|TabM|RealMLP|LightGBM',text)
         assert not re.search(r'\bdoi\s*:|doi\.org',text,re.I)
         if name=='manuscript':
-            assert set(re.findall(r'^\s*Figure (\d+)\.',text,re.M))=={'1','2'}
+            assert set(re.findall(r'^\s*Figure (\d+)\.',text,re.M))=={'1','2','3','4'}
             authors=['Jing Wang','Yanfang Chen','Kunpeng Xia']
             normalized=' '.join(text.split())
             assert [normalized.index(author) for author in authors]==sorted(normalized.index(author) for author in authors)
@@ -78,11 +84,13 @@ def main():
                        'Ethics approval and consent to participate','31900710','2024-496',
                        'Data availability','Code availability','pd-blood-cognitive-screening'])
             assert '31600862' not in text
-        else:assert 'Figure S1.' in text
+        else:
+            assert not re.search(r'Figure S\d+\.',text)
+            assert 'Figure 4 of the main manuscript' in text
     write_json(OUT/'manuscript_consistency.json',dict(status='passed',
         results_source='completed 100-trial Bayesian searches',prediction_strategies=8,
-        main_algorithms=['LR','SVM','RF','XGBoost','CatBoost','NN'],main_tables=3,
-        supplementary_tables=7,main_figures=2,supplementary_figures=1,
+        main_algorithms=['LR','SVM','RF','XGBoost','CatBoost','NN'],main_tables=4,
+        supplementary_tables=6,main_figures=4,supplementary_figures=0,
         original_PPMI_used_for_primary_development=False,
         original_workflow_confined_to_supplement=True,source_results_and_PDF_consistent=True,
         final_PDFs_in_manuscript=True,author_information='Three-author order confirmed by user on 2026-10-23; existing affiliations and correspondence retained',

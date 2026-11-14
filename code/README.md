@@ -1,6 +1,6 @@
 # v3.0 analysis and manuscript reproduction
 
-The primary analysis uses updated raw PPMI records and the released FAHHAUST-PD worksheet. The earlier publication's PPMI table is used only for Supplementary Tables S6–S7. The final modeling runner is `bayes100.py`; historical pilot runners are not required for the main comparison.
+The primary analysis uses updated raw PPMI records and the released FAHHAUST-PD worksheet. The earlier publication's PPMI table is used only for Supplementary Tables S5–S6. The final modeling runner is `bayes100.py`; historical pilot runners are not required for the main comparison.
 
 ## Inputs
 
@@ -40,12 +40,13 @@ python code/validate_bayes100.py
 python code/paper_bayes100_tables.py
 python code/calibration_bayes100_figure.py
 python code/manuscript_figures.py
+python code/main_presentation_figures.py
 python code/build_manuscript.py
 python code/validate_bayes100_manuscript.py
 ```
 
 The summarizer does not retrain predictive models. It uses 2,000 paired outcome-stratified participant bootstrap samples conditional on fitted models. Calibration models and probability-bin plots describe saved predictions without recalibration. Arial must be installed for figure export. PDF builds require TeX Live with `latexmk` and Poppler's `pdftotext`; auxiliary files stay under `tmp/latex/`, and final PDFs are copied to `manuscript/` after successful checks.
 
-Table 1, Supplementary Tables S1/S4, and the ancillary S6/S7 are retained descriptive/source-material outputs. They are unchanged by hyperparameter tuning. `six_model_tables.py` and `manuscript_statistics.py` supply reusable formatting helpers to the current generator, but their historical main functions must not overwrite the current model tables. The earlier limited-search validator is likewise superseded by `validate_bayes100_manuscript.py`.
+Tables 1/4, Supplementary Table S1, and the ancillary S5/S6 are retained descriptive/source-material outputs. They are unchanged by hyperparameter tuning. Table 4 was promoted from the supplement without recalculating its values. The four main figures cover the editable study workflow, AUROC/case mix, empirical ROC curves, and nested-LR calibration; the supplement contains six tables and no duplicated figures. `main_presentation_figures.py` exports the maintained workflow SVG using Inkscape and plots the ROC curves from frozen predictions, checking all 16 AUROCs against the retained results without refitting or updating thresholds. The calibration generator now writes `figure4_calibration.pdf/png`. `six_model_tables.py` and `manuscript_statistics.py` supply reusable formatting helpers to the current generator, but their historical main functions must not overwrite the current model tables. The earlier limited-search validator is likewise superseded by `validate_bayes100_manuscript.py`.
 
 Raw records, identifiers, participant-level predictions, temporary build files, references, and caches are excluded from version control. Current final manuscript and supplementary PDFs are deliverables. The immutable v2.0 snapshot is documented in `review/version.md`; v3.0 has been tagged and snapshotted as a stable release.

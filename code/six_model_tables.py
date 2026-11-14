@@ -98,11 +98,11 @@ def main():
           'These descriptive evaluation-sample fits did not update predictions. All fits converged.',True)
     case_mix=pd.read_csv(ROOT/'manuscript/results/manuscript_statistics/table_s_case_mix_formatted.csv',
                          dtype=str,keep_default_na=False)
-    table('table_s_case_mix','Age and cognitive-component distributions by outcome',
+    table('table4','Age and cognitive-component distributions by outcome',
           case_mix.columns.tolist(),case_mix.values.tolist(),
           r'P{0.12\textwidth}P{0.07\textwidth}P{0.07\textwidth}P{0.23\textwidth}P{0.18\textwidth}P{0.23\textwidth}',
           'Both positive means MoCA <26 and cognitive-item score >=1. Percentages in this column use the number of COG-positive participants as the denominator. '
-          'Age summaries use available values before imputation or capping; MoCA was complete.',True)
+          'Age summaries use available values before imputation or capping; MoCA was complete.',False)
     fixed=pd.read_csv(OUT/'metrics.csv').query("operating_point=='fixed_0.5'")
     rows=[]
     for cohort in ['PPMI_internal','FAHHAUST_external']:
