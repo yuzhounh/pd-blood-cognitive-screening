@@ -1,0 +1,23 @@
+data/
+tmp/
+reference/
+references/
+**/__pycache__/
+**/.pytest_cache/
+*.pyc
+*.pyo
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.bak
+*.backup
+# Final manuscript and figure PDFs are versioned deliverables.
