@@ -75,7 +75,9 @@ def main():
             assert [normalized.index(author) for author in authors]==sorted(normalized.index(author) for author in authors)
             assert 'wangjing@xynu.edu.cn' in text
             assert all(term in text for term in ['Funding','Conflict of interest',
-                       'Ethics approval and consent to participate','31900710','31600862','2024-496'])
+                       'Ethics approval and consent to participate','31900710','2024-496',
+                       'Data availability','Code availability','pd-blood-cognitive-screening'])
+            assert '31600862' not in text
         else:assert 'Figure S1.' in text
     write_json(OUT/'manuscript_consistency.json',dict(status='passed',
         results_source='completed 100-trial Bayesian searches',prediction_strategies=8,
@@ -84,8 +86,8 @@ def main():
         original_PPMI_used_for_primary_development=False,
         original_workflow_confined_to_supplement=True,source_results_and_PDF_consistent=True,
         final_PDFs_in_manuscript=True,author_information='Three-author order confirmed by user on 2026-10-23; existing affiliations and correspondence retained',
-        declarations='E01 funding and conflict statements; source ethics and consent for PPMI and FAHHAUST; de-identified secondary analysis',
-        remaining_submission_details='Author contributions, public code location and journal-specific submission metadata'))
+        declarations='P22 funding with NSFC 31900710; source ethics and consent for PPMI and FAHHAUST; author contributions; public code; AI assistance',
+        remaining_submission_details='Final author approval and journal-specific submission declarations'))
     print((OUT/'manuscript_consistency.json').read_text(),flush=True)
 
 

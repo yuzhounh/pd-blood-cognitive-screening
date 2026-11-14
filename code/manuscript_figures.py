@@ -166,7 +166,8 @@ def main():
                 input_sha256=before,model_refits=0,new_statistical_tests=2,
                 age_tests_sha256=sha(OUT/'figure2_age_tests.csv'),
                 figure2_points=16,figure2_age_observations=610,font_family=FONT_FAMILY,
-                output_sha256={p.relative_to(ROOT).as_posix():sha(p) for p in sorted(FIG.glob('*'))}))
+                output_sha256={p.relative_to(ROOT).as_posix():sha(p) for p in sorted(FIG.glob('*'))
+                               if p.suffix.lower() in {'.pdf','.png'}}))
     print(json.dumps(dict(event='MANUSCRIPT_FIGURES_COMPLETE',figures=2,model_refits=0)),flush=True)
 
 
