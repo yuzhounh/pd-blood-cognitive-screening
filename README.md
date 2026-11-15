@@ -4,15 +4,15 @@ Analysis code for **Incremental value of routine blood markers for cognitive scr
 
 ## Current analysis: v4.0, 18 strategies
 
-Six algorithms (LR, SVM, RF, XGBoost, CatBoost and a three-hidden-layer neural network) are each applied to age alone (Set 1), five demographic and anthropometric predictors (Set 2), and all 21 basic and blood predictors (Full set). All 18 strategies use the same 969 PPMI training participants, 416 internal-test participants and 197 Luoyang PD cohort (LY-PD) participants. The outcome is concurrent composite cognitive-screening positivity, not longitudinal cognitive decline.
+Six algorithms (LR, SVM, RF, XGBoost, CatBoost and a three-hidden-layer neural network) are each applied to age alone (Age-only set), five demographic and anthropometric predictors (Basic set), and all 21 basic and blood predictors (Full set). All 18 strategies use the same 969 PPMI training participants, 416 internal-test participants and 197 Luoyang PD cohort (LY-PD) participants. The outcome is concurrent composite cognitive-screening positivity, not longitudinal cognitive decline.
 
-Each strategy has an independent 100-trial training-only TPE search selected by mean five-fold AUROC. Eight compatible cleaned v3.2 fits were retained; ten reduced-input strategies completed the matrix. The factorial extension is exploratory. Within-algorithm Full set minus Set 2 comparisons assess the blood-panel increment: external AUROC point differences were negative for all six algorithms, while Brier-error changes depended on algorithm.
+Each strategy has an independent 100-trial training-only TPE search selected by mean five-fold AUROC. Eight compatible cleaned v3.2 fits were retained; ten reduced-input strategies completed the matrix. The factorial extension is exploratory. Within-algorithm Full set minus Basic set comparisons assess the blood-panel increment: external AUROC point differences were negative for all six algorithms, while Brier-error changes depended on algorithm.
 
 ## Code and reproduction
 
 See the [reproduction guide](code/README.md) for prerequisites, the eight-plus-ten training sequence, performance estimation, tables, figures and validation. `code/factorial_protocol.py` defines the complete registry; `code/bayes100.py` supplies the original eight fits and shared learners; `code/factorial_bayes100.py` trains the ten additional fits. Current postprocessing uses `factorial_statistics.py`, `factorial_tables.py` and `factorial_figures.py`.
 
-Main Figure 2 reports all 18 strategies in both cohorts; Figure 3 reports six within-algorithm blood-panel increments. Supplementary ROC panels contain 36 curves, and calibration covers all 18 strategies. Main Figure 4 retains the three LR calibration comparisons. The editable [18-strategy workflow SVG](manuscript/figures/figure1_factorial_design.svg) is supplied together with its [base SVG](manuscript/figures/figure1_study_design.svg), which the exporter reads. Table formatting preserves the sign of very small nonzero interval bounds.
+Main Figure 2 reports all 18 strategies in both cohorts; Figure 3 reports six within-algorithm blood-panel increments. Supplementary ROC panels contain 36 curves, and calibration covers all 18 strategies. Main Figure 4 retains the three LR calibration comparisons. The editable [18-strategy workflow SVG](manuscript/figures/figure1_factorial_design.svg) is the maintained source used by the current exporter; the [earlier eight-strategy SVG](manuscript/figures/figure1_study_design.svg) is retained for historical helper compatibility. Table formatting preserves the sign of very small nonzero interval bounds.
 
 Training used Python 3.12.15 and the versions pinned in `requirements.txt`. `environment_snapshot.json` records all 18 training environments and the separate executed postprocessing environment. Historical helper modules are retained as dependencies; their old main functions are not the current analysis route.
 
@@ -25,3 +25,7 @@ This is a source-code release. Raw or derived participant records, identifiers, 
 ## Contact
 
 Jing Wang, Xinyang Normal University. Email: wangjing@xynu.edu.cn.
+
+## Predictor-set display names
+
+Reader-facing labels are Age-only set (1 predictor), Basic set (5 predictors), and Full set (21 predictors). `display_labels.py` maps the immutable result keys `Set 1` and `Set 2` to the semantic names. Existing strategy IDs, receipt filenames, prediction arrays, and unrounded result CSVs retain their original keys for compatibility.

@@ -1,5 +1,5 @@
 """Independent B129 metric, paired-interval, presentation and PDF checks."""
-import json,re,hashlib
+import json,re,hashlib,sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -57,12 +57,17 @@ def main():
     for r in primary.itertuples():
         d=3 if r.metric=='AUROC' else 4
         assert difference_interval(r.difference,r.low,r.high,d) in table3
+    secondary_table=(M/'tables/factorial_secondary.tex').read_text()
+    for r in delta.loc[~delta.primary_comparison].itertuples():
+        d=3 if r.metric=='AUROC' else 4
+        assert difference_interval(r.difference,r.low,r.high,d) in secondary_table
     expected_table_rows={'factorial_search':6,'factorial_selected':18,'factorial_performance_internal':18,'factorial_performance_external':18,'factorial_calibration':36,'factorial_classification_internal':36,'factorial_classification_external':36,'factorial_secondary':24,'factorial_anthropometry':16}
     for name,n in expected_table_rows.items():assert len(pd.read_csv(OUT/(name+'_formatted.csv')))==n,(name,n)
     fig=json.loads((OUT/'figure_manifest.json').read_text());assert len(fig['ROC_checks'])==36
     assert all(sha(ROOT/rel)==digest for rel,digest in fig['output_sha256'].items())
     for r in fig['ROC_checks']:assert abs(r['AUROC']-points[(r['cohort'],r['strategy_id'])]['AUROC'])<1e-12
-    old=json.loads((ROOT/'manuscript/results/bayes100/calibration_figure_manifest.json').read_text())
+    display_manifest=OUT/'lr_calibration_display_manifest.json'
+    old=json.loads((display_manifest if display_manifest.exists() else ROOT/'manuscript/results/bayes100/calibration_figure_manifest.json').read_text())
     assert all(sha(ROOT/rel)==digest for rel,digest in old['output_sha256'].items())
     bins=pd.read_csv(OUT/'supplementary_calibration_bins.csv');assert len(bins.groupby(['cohort','strategy_id']))==30
     assert all(n in [416,197] for n in bins.groupby(['cohort','strategy_id']).n.sum())
@@ -93,4 +98,39 @@ def main():
             assert set(re.findall(r'^\s*Figure S(\d+)\.',text,re.M))=={'1','2','3','4','5'}
     record=dict(status='passed',strategies=18,reused_strategies=8,new_strategies=10,total_trial_records=1800,new_trials=1000,performance_rows=36,paired_rows=72,classification_rows=72,calibration_rows=36,all_calibration_bootstrap_fits_estimable=True,independent_paired_CI_checks=ci_checks,baseline_both_conditions_unchanged=True,main_tables=4,main_figures=4,supplementary_table_groups=9,supplementary_figures=5,source_results_figures_and_PDFs_consistent=True)
     write_json(OUT/'manuscript_consistency.json',record);print(json.dumps(record,indent=2))
-if __name__=='__main__':main()
+def validate_presentation():
+    """Check a display refresh without replaying bootstrap or fitting any model."""
+    from display_labels import PREDICTOR_SET_DISPLAY
+    build=json.loads((OUT/'build_validation.json').read_text())
+    assert all(sha(ROOT/rel)==digest for rel,digest in build['source_sha256'].items())
+    fig=json.loads((OUT/'figure_manifest.json').read_text())
+    assert fig['predictor_set_display']==PREDICTOR_SET_DISPLAY
+    assert fig['predictive_models_refitted']==0 and len(fig['ROC_checks'])==36
+    assert all(sha(ROOT/rel)==digest for rel,digest in fig['output_sha256'].items())
+    assert all(sha(ROOT/rel)==digest for rel,digest in fig['input_sha256'].items())
+    tables={'factorial_selected':18,'factorial_performance_internal':18,'factorial_performance_external':18,
+            'factorial_calibration':36,'factorial_classification_internal':36,'factorial_classification_external':36,
+            'factorial_secondary':24,'factorial_anthropometry':16}
+    labels={'Age-only set','Basic set','Full set'}
+    for name,n in tables.items():
+        frame=pd.read_csv(OUT/(name+'_formatted.csv'))
+        assert len(frame)==n
+        if 'Set' in frame:assert set(frame.Set)==labels
+        assert not re.search(r'\bSet\s+[12]\b',(M/f'tables/{name}.tex').read_text())
+    for name,record in build['documents'].items():
+        assert sha(ROOT/record['pdf'])==record['sha256']
+        assert record['compiled_without_errors_or_undefined_references'] and not record['layout_warnings']
+        text=(ROOT/f'tmp/latex/{name}/extracted.txt').read_text()
+        assert all(label in text for label in labels)
+        assert not re.search(r'\bSet\s+[12]\b',text)
+        aux=(ROOT/f'tmp/latex/{name}/{name}.aux').read_text()
+        actual=set(re.findall(r'\\newlabel\{tab:[^}]+\}\{\{(S?[^}]+)\}',aux))
+        expected={'1','2','3','4'} if name=='manuscript' else {'S1','S2A','S2B','S3A','S3B','S4','S5A','S5B','S6','S7','S8','S9'}
+        assert actual==expected
+    record=dict(status='passed',validation_scope='presentation only; no bootstrap or model fitting',predictor_set_display=PREDICTOR_SET_DISPLAY,strategies=18,ROC_curves=36,documents=build['documents'])
+    write_json(OUT/'semantic_presentation_validation.json',record)
+    print(json.dumps(record,indent=2))
+
+
+if __name__=='__main__':
+    validate_presentation() if '--presentation-only' in sys.argv else main()

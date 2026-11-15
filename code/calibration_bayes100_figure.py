@@ -20,9 +20,9 @@ plt.rcParams.update({'font.family':'Arial','font.size':10.5,'pdf.fonttype':42,'p
                      'axes.spines.top':False,'axes.spines.right':False,'savefig.facecolor':'white'})
 
 
-def main(reuse_bins=False):
+def main(reuse_bins=False, manifest_path=None):
     assert json.loads((OUT/'summary_validation.json').read_text())['status']=='computed_and_numerically_checked'
-    names=['Age_LR','Basic_LR','LR'];labels=[MODEL_LABELS[name] for name in names]
+    names=['Age_LR','Basic_LR','LR'];labels=[PREDICTOR_SET_LABELS[name] for name in names]
     colors=['#5b6770','#285f8f','#c7652e']
     inputs={str((PRIVATE/(n+'.npz')).relative_to(ROOT)):sha(PRIVATE/(n+'.npz')) for n in names}
     retained=pd.read_csv(OUT/'calibration_bins.csv') if reuse_bins else None
@@ -68,7 +68,7 @@ def main(reuse_bins=False):
     plt.close(fig)
     if not reuse_bins:
         pd.DataFrame(rows).to_csv(OUT/'calibration_bins.csv',index=False)
-    write_json(OUT/'calibration_figure_manifest.json',dict(status='generated',code_sha256=sha(__file__),
+    write_json(manifest_path or OUT/'calibration_figure_manifest.json',dict(status='generated',code_sha256=sha(__file__),
                input_sha256=inputs,maximum_bins=5,interval='Wilson 95%; descriptive evaluation sample',
                model_or_threshold_updates=0,retained_bins_reused=reuse_bins,
                output_sha256={p.relative_to(ROOT).as_posix():sha(p) for p in

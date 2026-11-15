@@ -52,10 +52,10 @@
   <text x="1033" y="236" font-size="29" text-anchor="middle" fill="#263744">Internal test</text>
   <text x="1033" y="274" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 416</text>
   <rect x="650" y="315" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
-  <text x="675" y="354" font-size="30" font-weight="bold" fill="#263744">Set 1: 1 predictor</text>
+  <text x="675" y="354" font-size="30" font-weight="bold" fill="#263744">Age-only set: 1 predictor</text>
   <text x="675" y="391" font-size="28" fill="#596775">Age</text>
   <rect x="650" y="435" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
-  <text x="675" y="474" font-size="30" font-weight="bold" fill="#263744">Set 2: 5 predictors</text>
+  <text x="675" y="474" font-size="30" font-weight="bold" fill="#263744">Basic set: 5 predictors</text>
   <text x="675" y="511" font-size="28" fill="#596775">Age, sex, height, weight, BMI</text>
   <rect x="650" y="555" width="500" height="182" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
   <text x="675" y="594" font-size="30" font-weight="bold" fill="#263744">Full set: 21 predictors</text>
@@ -76,7 +76,7 @@
   <text x="1320" y="150" font-size="31" font-weight="bold" fill="#263744">18 prediction strategies</text>
   <text x="1250" y="206" font-size="28" fill="#596775">Six algorithms: LR, SVM, RF,</text>
   <text x="1250" y="246" font-size="28" fill="#596775">XGBoost, CatBoost and NN</text>
-  <text x="1250" y="286" font-size="28" fill="#596775">Each with Set 1, Set 2, Full set</text>
+  <text x="1250" y="286" font-size="28" fill="#596775">Each with all three predictor sets</text>
   <line x1="1250" y1="310" x2="1750" y2="310" stroke="#c7b9d8" stroke-width="2"/>
   <text x="1250" y="349" font-size="30" font-weight="bold" fill="#263744">Within model-fitting subsets</text>
   <text x="1250" y="390" font-size="29" fill="#263744">Capping, imputation, scaling</text>

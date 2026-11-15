@@ -8,6 +8,7 @@ WORK=ROOT/'tmp/B129 Full Factorial'
 BASE_RESULTS=ROOT/'manuscript/results/bayes100'
 BASE_PREDICTIONS=ROOT/'data/derived/bayes100'
 ALGORITHMS=['LR','SVM','RF','XGBoost','CatBoost','NN']
+# Immutable analysis keys; display_labels maps these to semantic manuscript labels.
 SETS=['Set 1','Set 2','Full set']
 BASELINE={'Age_LR','Basic_LR','LR','SVM','RF','XGBoost','CatBoost','NN'}
 STRATEGIES=[]

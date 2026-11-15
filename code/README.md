@@ -1,6 +1,6 @@
 # v4.0: 18-strategy analysis and reproduction guide
 
-The current analysis crosses six algorithms with three nested predictor sets on the same participants. Set 1 is age alone; Set 2 is age, sex, height, weight and BMI; Full set adds 16 routine blood predictors. The samples contain 969 training, 416 internal-test and 197 external LY-PD participants. Positivity is MoCA <26 or NP1COG >=1, with both observed. The main comparison is Full set minus Set 2 within each algorithm.
+The current analysis crosses six algorithms with three nested predictor sets on the same participants. Age-only set is age alone; Basic set is age, sex, height, weight and BMI; Full set adds 16 routine blood predictors. The samples contain 969 training, 416 internal-test and 197 external LY-PD participants. Positivity is MoCA <26 or NP1COG >=1, with both observed. The main comparison is Full set minus Basic set within each algorithm.
 
 The v4.0 author release is fixed. Eight compatible cleaned v3.2 fits are reused and ten reduced-input fits complete the 18-strategy matrix. The independent retained-measurement sensitivity still contains eight strategies; the earlier-paper reconstruction is separate. The table-display correction dated 2026-11-15 changes one rounded interval bound, not fitted estimates or scientific conclusions.
 
@@ -61,3 +61,13 @@ Statistics produce 36 strategy–cohort performance records, 72 absolute-metric 
 Main Tables 1 and 4 describe the common cohort and case mix. Table 2 reports six Full-set models; Table 3 reports their within-algorithm blood increments. S2B contains 18 selected configurations; S3A/B contain 18 performances per cohort; S4 contains 36 calibration rows; S5A/B contain 36 classification rows per cohort. S6 holds secondary predictor-set contrasts. The earlier-publication reconstruction is S7/S8; the retained eight-strategy measurement sensitivity is S9. No additional 18-strategy sensitivity experiment is implied.
 
 Publication scripts include older helper modules for imports and provenance. Their historical main functions are superseded by the current route above. Restricted inputs, individual predictions, fitted objects and manuscript snapshots remain outside this public repository.
+
+## Predictor-set display names
+
+Reader-facing labels are Age-only set (1 predictor), Basic set (5 predictors), and Full set (21 predictors). `display_labels.py` maps the immutable result keys `Set 1` and `Set 2` to the semantic names. Existing strategy IDs, receipt filenames, prediction arrays, and unrounded result CSVs retain their original keys for compatibility.
+
+For a display-only refresh from existing results, run `python code/factorial_tables.py`, `python code/factorial_figures.py --presentation-only`, and `python code/build_manuscript.py --factorial`. The figure command reuses calibration bins and Wilson intervals, leaves the age figure unchanged, and forms ROC plotting coordinates from frozen predictions; it does not train estimators or rerun bootstrap inference. When refreshing a frozen active workspace, only the generated presentation CSVs and build/figure metadata need write access; frozen analysis and prediction files remain protected.
+
+Run `python code/validate_factorial_manuscript.py --presentation-only` to check display names, figure/result bindings, table coverage and compiled PDFs without replaying bootstrap inference.
+
+Figure 2 uses a 9.4 by 5.22 inch layout with plotting-panel height/width of 9/8; its plotting height is 10% shorter than the preceding 5/4-panel layout. Table 1 keeps names and units in the first column; its note specifies n (%), mean (SD) for age and MoCA, and median [Q1, Q3] for anthropometry and blood predictors.

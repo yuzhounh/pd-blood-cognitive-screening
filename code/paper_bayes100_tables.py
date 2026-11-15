@@ -70,6 +70,7 @@ def write_missing_table():
     """Reformat retained counts without rereading participant data."""
     frame=pd.read_csv(ROOT/'manuscript/results/manuscript_statistics/table_s_missing_formatted.csv',
                       dtype=str,keep_default_na=False)
+    frame.iloc[:,0]=frame.iloc[:,0].replace({'age':'Age','sex':'Sex','height':'Height','weight':'Weight'})
     display.table('table_s_missing','Missing predictor values before training-derived imputation',
                   frame.columns.tolist(),frame.values.tolist(),
                   r'P{0.43\textwidth}P{0.19\textwidth}P{0.19\textwidth}P{0.19\textwidth}',
@@ -165,7 +166,7 @@ def main():
     abs_headers=['Sample','Predictor set','AUROC (95% CI)','Brier','Accuracy, %','Sensitivity, %','Specificity, %']
     differences=[];paired=pd.read_csv(OUT/'paired_lr.csv')
     for cohort,label in [('PPMI_internal','Internal'),('FAHHAUST_external','External')]:
-        for model,ref,title in [('LR','Basic_LR','Full set vs Set 2'),('Basic_LR','Age_LR','Set 2 vs Set 1'),('LR','Age_LR','Full set vs Set 1')]:
+        for model,ref,title in [('LR','Basic_LR','Full set vs Basic set'),('Basic_LR','Age_LR','Basic set vs Age-only set'),('LR','Age_LR','Full set vs Age-only set')]:
             d=paired.loc[paired.cohort.eq(cohort)&paired.model.eq(model)&paired.reference.eq(ref)].set_index('metric')
             a,b=d.loc['AUROC'],d.loc['Brier']
             differences.append([label,title,interval(a.difference,a.low,a.high),
@@ -173,14 +174,14 @@ def main():
     diff_headers=['Sample','Predictor-set comparison','AUROC difference (95% CI)','Brier difference (95% CI)']
     meta={name:json.loads((OUT/(name+'.json')).read_text()) for name in REFERENCES+ALGORITHMS}
     write_software_versions(meta)
-    notes=('Set 1 used age alone; Set 2 used age, sex, height, weight and BMI; Full set added 16 blood predictors to Set 2 (21 predictors). Corresponding models were LR - Set 1, LR - Set 2 and LR. '
+    notes=('Age-only set used age alone; Basic set used age, sex, height, weight and BMI; Full set added 16 blood predictors to Basic set (21 predictors). Corresponding models were LR - Age-only set, LR - Basic set and LR - Full set. '
            'All models used the same 969 training participants and were evaluated on 416 internal and 197 external participants. '
            'Classification thresholds maximized the training out-of-fold Youden index: '+
            ', '.join(label+' '+f"{meta[name]['oof_threshold']:.6f}" for name,label in [('Age_LR',MODEL_LABELS['Age_LR']),('Basic_LR',MODEL_LABELS['Basic_LR']),('LR',MODEL_LABELS['LR'])])+'. '
            'The same threshold was used in both evaluation samples. Differences are the first model minus the second; higher AUROC and lower Brier are favorable. '
            'Paired differences were calculated before rounding. Absolute Brier and Wilson classification confidence intervals are in Supplementary Table S4. '
            'AUROC and Brier intervals are conditional on fitted models and use 2,000 outcome-stratified participant bootstrap samples. '
-           'The principal blood-panel comparison is Full set versus Set 2 (LR versus LR - Set 2). No equivalence margin or multiplicity-adjusted model-performance test was specified. \\textbf{Abbreviations:} LR, logistic regression; BMI, body mass index; AUROC, area under the receiver operating characteristic curve; CI, confidence interval.')
+           'The principal blood-panel comparison is Full set versus Basic set (LR - Full set versus LR - Basic set). No equivalence margin or multiplicity-adjusted model-performance test was specified. \\textbf{Abbreviations:} LR, logistic regression; BMI, body mass index; AUROC, area under the receiver operating characteristic curve; CI, confidence interval.')
     lines=[r'\begin{table}[!htbp]\centering\ManuscriptTableStyle',
            r'\caption{\textbf{Performance and incremental value of logistic regression models with nested predictor sets.}}\label{tab:table3}',
            r'\textbf{A. Absolute performance}\par\medskip']+panel(abs_headers,absolute)
@@ -194,7 +195,7 @@ def main():
                   ['Algorithm','TPE trials','Search space'],searches,
                   r'P{0.13\textwidth}P{0.12\textwidth}P{0.69\textwidth}',
                   'Ranges are inclusive; log denotes a logarithmic scale, linear a linear scale, and square brackets categorical candidates. '
-                  'LR - Set 1 and LR - Set 2 used the same C range and 100-trial budget as LR. RF max_depth=None denotes unlimited depth; SVM gamma applies only to RBF. '
+                  'LR - Age-only set and LR - Basic set used the same C range and 100-trial budget as LR. RF max_depth=None denotes unlimited depth; SVM gamma applies only to RBF. '
                   'Stopping splits used training data only; caps and patience are described above. \\textbf{Abbreviations:} LR, logistic regression; SVM, support vector machine; RF, random forest; NN, neural network; TPE, tree-structured Parzen estimator; RBF, radial basis function.',long=True)
     settings=[r'\subsection*{Selected settings and operating thresholds}',r'\begingroup\small\raggedright']
     for name in ['Age_LR','Basic_LR']+ALGORITHMS:

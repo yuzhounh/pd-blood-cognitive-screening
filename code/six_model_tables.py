@@ -1,6 +1,6 @@
 """Current six-algorithm paper tables; original reconstruction is supplementary only."""
 from pathlib import Path
-from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS
+from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS, display_text
 import json
 import pandas as pd
 from common_preprocessing import write_json,sha
@@ -13,6 +13,8 @@ NAMES=['LR','SVM','RF','XGBoost','CatBoost','NN']
 
 
 def table(name,title,headers,rows,spec,notes,long=False,group_first=False,full_width=False):
+    title,notes=display_text(title),display_text(notes)
+    rows=[[display_text(value) for value in row] for row in rows]
     spec=fit_paragraph_columns(spec)
     pd.DataFrame(rows,columns=headers).to_csv(OUT/(name+'_formatted.csv'),index=False)
     display_rows=[list(row) for row in rows]

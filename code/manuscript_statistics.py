@@ -1,6 +1,6 @@
 """Complete prediction-level intervals and generate manuscript tables; no model fits."""
 from pathlib import Path
-from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS
+from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS, display_text
 import importlib.metadata
 import json
 import platform
@@ -28,7 +28,7 @@ LABELS = PREDICTOR_SET_LABELS
 
 
 def tex(s):
-    return (str(s).replace('&', r'\&').replace('%', r'\%').replace('_', r'\_')
+    return (display_text(s).replace('&', r'\&').replace('%', r'\%').replace('_', r'\_')
             .replace('>=', r'$\geq$').replace('10^12/L', r'$10^{12}$/L')
             .replace('10^9/L', r'$10^9$/L').replace('kg/m2', r'kg/m$^2$')
             .replace('umol/L', r'$\mu$mol/L'))
@@ -49,6 +49,8 @@ def fit_paragraph_columns(spec):
 
 
 def save_table(name, title, headers, rows, spec, notes, long=False):
+    title,notes=display_text(title),display_text(notes)
+    rows=[[display_text(value) for value in row] for row in rows]
     spec = spec.replace('p{', 'P{')
     spec = fit_paragraph_columns(spec)
     frame = pd.DataFrame(rows, columns=headers)
@@ -60,7 +62,7 @@ def save_table(name, title, headers, rows, spec, notes, long=False):
     (TABLES / f'{name}.md').write_text('\n'.join(markdown), encoding='utf-8')
     heading = ' & '.join(r'\ManuscriptHeader{'+tex(h)+'}' for h in headers) + r' \\'
     if long:
-        lines = [r'\begingroup\ManuscriptTableStyle',
+        lines = [r'\par\begingroup\ManuscriptTableStyle',
                  r'\begin{longtable}{' + spec + '}',
                  r'\caption{\textbf{' + tex(title).rstrip('.') + r'.}}\label{tab:' + name + r'}\\',
                  r'\toprule', heading, r'\midrule\endfirsthead',
@@ -74,7 +76,7 @@ def save_table(name, title, headers, rows, spec, notes, long=False):
     lines += [' & '.join(tex(x) for x in row) + r' \\' for row in rows]
     note_text = tex(notes).replace('Abbreviations:', r'\textbf{Abbreviations:}')
     if long:
-        lines += [r'\end{longtable}', r'\noindent\ManuscriptNoteStyle ' + note_text, r'\endgroup']
+        lines += [r'\end{longtable}', r'\noindent\ManuscriptNoteStyle ' + note_text, r'\par\endgroup']
     else:
         lines += [r'\bottomrule\end{tabular}', r'\par\medskip',
                   r'\begin{minipage}{\textwidth}\ManuscriptNoteStyle ' + note_text,
@@ -273,6 +275,29 @@ def main():
 
 
 
+def descriptive_display_rows(rows):
+    """Group outcome components; keep statistic definitions in the table note."""
+    components = ['MoCA <26 only', 'Cognitive item >=1 only', 'Both positive components']
+    suffixes = [', n (%)', ', mean (SD)', ', median [Q1, Q3]']
+    normalized = []
+    for row in rows:
+        label = row[0]
+        for suffix in suffixes:
+            if label.endswith(suffix):
+                label = label[:-len(suffix)]
+                break
+        normalized.append([label, *row[1:]])
+    lookup = {row[0]: row for row in normalized}
+    ordered = []
+    for row in normalized:
+        if row[0] in components:
+            continue
+        ordered.append(row)
+        if row[0] == 'COG-positive':
+            ordered.extend(lookup[label] for label in components)
+    return ordered
+
+
 def write_descriptive_tables(cohorts):
     missing = []
     for feature in FEATURES:
@@ -317,13 +342,14 @@ def write_descriptive_tables(cohorts):
         ('Any missing blood predictor',lambda d:d[LABS].isna().any(axis=1))]:
         rows.append([label,*[count(func(d),d) for d in cohorts.values()]])
     save_table('table1','Characteristics of the model-development and evaluation samples',
-               ['Characteristic','PPMI training','PPMI internal','LY-PD'],rows,
+               ['Characteristic','PPMI training','PPMI internal','LY-PD'],descriptive_display_rows(rows),
                r'p{0.34\textwidth}p{0.20\textwidth}p{0.20\textwidth}p{0.20\textwidth}',
                'Values are n (%), mean (SD) for age and MoCA, and median [Q1, Q3] for anthropometry and blood predictors. '
                'Summaries use observed values before imputation or capping; percentages use the full sample denominator. '
                'The three positive-component rows partition COG-positive participants. Abbreviations: BMI, body mass index; '
                'MoCA, Montreal Cognitive Assessment; NLR, neutrophil-to-lymphocyte ratio; RBC, red blood cell count; WBC, white blood cell count; SD, standard deviation; Q1, first quartile; Q3, third quartile; PPMI, Parkinson\'s Progression Markers Initiative; LY-PD, Luoyang PD cohort; COG, composite cognitive-screening outcome.',True)
-    missing_rows=[[row['predictor'],*[str(row[k+'_missing']) for k in cohorts]] for row in missing]
+    missing_labels = {'age':'Age', 'sex':'Sex', 'height':'Height', 'weight':'Weight'}
+    missing_rows=[[missing_labels.get(row['predictor'],row['predictor']),*[str(row[k+'_missing']) for k in cohorts]] for row in missing]
     save_table('table_s_missing','Missing predictor values before training-derived imputation',
                ['Predictor','PPMI training','PPMI internal','LY-PD'],missing_rows,
                r'p{0.37\textwidth}p{0.19\textwidth}p{0.19\textwidth}p{0.19\textwidth}',
