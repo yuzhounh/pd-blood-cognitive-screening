@@ -1,6 +1,7 @@
 """B129 vector figures from the 18 frozen prediction strategies."""
 from pathlib import Path
 import json,shutil,subprocess,sys
+import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -26,6 +27,27 @@ def legend(fig,y=.0):
 def workflow():
     # The maintained 18-strategy SVG is authoritative; preserve its current design.
     svg=FIG/'figure1_factorial_design.svg'
+    design=ET.parse(svg).getroot()
+    labels={node.text for node in design.iter() if node.tag.endswith('}text')}
+    assert f'{len(STRATEGIES)} prediction strategies' in labels
+    assert f'{len(SETS)} predictor sets × {len(ALGORITHMS)} algorithms' in labels
+    icon_ids={'cohort-icon','split-icon','training-icon'}
+    icons={node.attrib.get('id'):node for node in design.iter() if node.attrib.get('id') in icon_ids}
+    assert set(icons)==icon_ids and {node.attrib.get('data-visual-size') for node in icons.values()}=={'70'}
+    assert 'Each with all three predictor sets' not in labels
+    # The SVG owns y coordinates; preserve the larger gap before the algorithm list.
+    text_y={node.text:float(node.attrib['y']) for node in design.iter()
+            if node.tag.endswith('}text') and 'y' in node.attrib}
+    first=text_y['Six algorithms: LR, SVM, RF,'];second=text_y['XGBoost, CatBoost and NN']
+    assert first-text_y[f'{len(SETS)} predictor sets × {len(ALGORITHMS)} algorithms']>=1.4*(second-first)
+    rects=[node.attrib for node in design.iter() if node.tag.endswith('}rect')]
+    pair=[a for a in rects if a.get('x') in {'650','915'} and a.get('width')=='235']
+    rows=sorted([a for a in rects if a.get('x')=='650' and a.get('width') in {'235','500'}],key=lambda a:float(a['y']))
+    assert len(pair)==2 and pair[0]['y']==pair[1]['y'] and len(rows)==4
+    gaps=[float(b['y'])-float(a['y'])-float(a['height']) for a,b in zip(rows,rows[1:])]
+    final=next(a for a in rects if a.get('x')=='1250' and a.get('height')=='158')
+    assert min(gaps)>0 and max(gaps)-min(gaps)<1e-6
+    assert float(rows[-1]['y'])+float(rows[-1]['height'])==float(final['y'])+float(final['height'])
     inkscape=shutil.which('inkscape');assert inkscape
     for ext,args in [('pdf',['--export-text-to-path']),('png',['--export-dpi=300'])]:
         target=FIG/('figure1_factorial_design.'+ext)
@@ -72,12 +94,21 @@ def roc_panels(packets,perf):
     for cohort,yk,pk,stem,label in [('PPMI_internal','yi','pi','figure_s2_internal_roc','Internal PPMI'),('FAHHAUST_external','ye','p','figure_s3_external_roc','External LY-PD')]:
         fig,axes=plt.subplots(3,2,figsize=(8,9.2))
         for panel,(ax,algorithm) in enumerate(zip(axes.flat,ALGORITHMS)):
+            legend_handles=[];legend_names=[];legend_values=[]
             for spec in [s for s in STRATEGIES if s['algorithm']==algorithm]:
                 a=packets[spec['strategy_id']];fpr,tpr,_=roc_curve(a[yk],a[pk]);value=auc(fpr,tpr)
                 target=perf.loc[perf.cohort.eq(cohort)&perf.strategy_id.eq(spec['strategy_id'])].iloc[0].AUROC
                 assert abs(value-target)<1e-12;roc_checks.append(dict(cohort=cohort,strategy_id=spec['strategy_id'],AUROC=float(value)))
-                ax.plot(fpr,tpr,color=COLORS[spec['predictor_set']],lw=1.25,label=f'{display_text(spec["predictor_set"])}: {value:.3f}')
-            ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8);ax.set(xlim=(0,1),ylim=(0,1),xlabel='1 - specificity',ylabel='Sensitivity');ax.set_title(f'{chr(65+panel)}. {algorithm}',loc='left',weight='bold');ax.legend(frameon=False,fontsize=8,loc='lower right');ax.grid(color='#e6eaed',lw=.5)
+                line=ax.plot(fpr,tpr,color=COLORS[spec['predictor_set']],lw=1.25)[0]
+                legend_handles.append(line);legend_names.append(display_text(spec['predictor_set']));legend_values.append(f'{value:.3f}')
+            ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8);ax.set(xlim=(0,1),ylim=(0,1),xlabel='1 - specificity',ylabel='Sensitivity');ax.set_title(f'{chr(65+panel)}. {algorithm}',loc='left',weight='bold')
+            # Column-major legend entries: names at one left edge, values at another.
+            blanks=[plt.Line2D([],[],lw=0,alpha=0) for _ in legend_values]
+            lg=ax.legend(legend_handles+blanks,legend_names+legend_values,ncols=2,
+                         frameon=False,fontsize=8,loc='lower right',alignment='left',
+                         handlelength=1.6,handletextpad=.35,columnspacing=.25)
+            for text in lg.get_texts():text.set_ha('left')
+            ax.grid(color='#e6eaed',lw=.5)
         fig.suptitle(label,fontsize=12,weight='bold');fig.subplots_adjust(left=.09,right=.98,top=.94,bottom=.06,hspace=.42,wspace=.28);export(fig,stem)
 def calibration_panels(packets, retained_bins=None):
     for cohort,yk,pk,stem in [('PPMI_internal','yi','pi','figure_s4_internal_calibration'),('FAHHAUST_external','ye','p','figure_s5_external_calibration')]:
@@ -115,6 +146,6 @@ def main(presentation_only=False):
     from calibration_bayes100_figure import main as lr_calibration
     lr_calibration(reuse_bins=presentation_only,manifest_path=OUT/'lr_calibration_display_manifest.json')
     outputs.extend(FIG/('figure4_calibration.'+ext) for ext in ['pdf','png'])
-    manifest=dict(status='generated',font_family='Arial',predictive_models_refitted=0,ROC_checks=roc_checks,supplementary_ROC_curves=36,output_sha256={str(f.relative_to(ROOT)):sha(f) for f in outputs},input_sha256={str((OUT/n).relative_to(ROOT)):sha(OUT/n) for n in ['performance.csv','paired_differences.csv','supplementary_calibration_bins.csv']},main_LR_calibration_reused=True,presentation_only=presentation_only,predictor_set_display=PREDICTOR_SET_DISPLAY,calibration_bins_reused=presentation_only,supplementary_panel_labels={kind:[f'{chr(65+i)}. {a}' for i,a in enumerate(order)] for kind,order in [('S2/S3',ALGORITHMS),('S4/S5',ALGORITHMS[1:])]})
+    manifest=dict(status='generated',font_family='Arial',predictive_models_refitted=0,ROC_checks=roc_checks,supplementary_ROC_curves=36,output_sha256={str(f.relative_to(ROOT)):sha(f) for f in outputs},input_sha256={str((OUT/n).relative_to(ROOT)):sha(OUT/n) for n in ['performance.csv','paired_differences.csv','supplementary_calibration_bins.csv']},main_LR_calibration_reused=True,presentation_only=presentation_only,predictor_set_display=PREDICTOR_SET_DISPLAY,calibration_bins_reused=presentation_only,roc_legend_alignment={'name_column':'left','AUROC_column':'left'},supplementary_panel_labels={kind:[f'{chr(65+i)}. {a}' for i,a in enumerate(order)] for kind,order in [('S2/S3',ALGORITHMS),('S4/S5',ALGORITHMS[1:])]})
     write_json(OUT/'figure_manifest.json',manifest);print(json.dumps(dict(status='generated',main_figures=[1,2,3,4],main_figure4_reused=True,supplementary_figures=5,ROC_curves=36,presentation_only=presentation_only)))
 if __name__=='__main__':main(presentation_only='--presentation-only' in sys.argv)

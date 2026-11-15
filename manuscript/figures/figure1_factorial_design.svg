@@ -12,13 +12,13 @@
   <circle cx="57" cy="57" r="22" fill="#ffffff"/>
   <text x="57" y="68" font-size="31" font-weight="bold" text-anchor="middle" fill="#3b6ea5">1</text>
   <text x="92" y="67" font-size="30" font-weight="bold" fill="#ffffff">Cohorts and cognitive status</text>
-  <g transform="translate(53,125)" stroke="#3b6ea5" stroke-width="3" fill="#d2e0ef">
+  <g id="cohort-icon" data-visual-size="70" transform="translate(56.79452055,126.5) scale(0.9178082192)" stroke="#3b6ea5" stroke-width="3.2686567164" fill="#d2e0ef">
     <path d="M0 13 v47 a34 13 0 0 0 68 0 V13"/>
     <ellipse cx="34" cy="13" rx="34" ry="13"/>
     <path d="M0 36 a34 13 0 0 0 68 0" fill="none"/>
   </g>
   <text x="144" y="150" font-size="31" font-weight="bold" fill="#263744">PPMI cohort</text>
-  <text x="144" y="190" font-size="29" fill="#263744">2,263 participants with PD</text>
+  <text x="144" y="186" font-size="29" fill="#263744">2,263 participants with PD</text>
   <rect x="50" y="215" width="500" height="135" rx="10" fill="#ffffff" stroke="#b5c8dc" stroke-width="2"/>
   <text x="75" y="253" font-size="30" font-weight="bold" fill="#263744">Eligible matched sample: 1,385</text>
   <text x="75" y="293" font-size="29" fill="#263744">COG+: 679  |  COG−: 706</text>
@@ -37,26 +37,26 @@
   <circle cx="657" cy="57" r="22" fill="#ffffff"/>
   <text x="657" y="68" font-size="31" font-weight="bold" text-anchor="middle" fill="#2a9d8f">2</text>
   <text x="692" y="67" font-size="31" font-weight="bold" fill="#ffffff">Split and predictor sets</text>
-  <g id="split-icon" transform="translate(652,127)" fill="none" stroke="#2a9d8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <g id="split-icon" data-visual-size="70" transform="translate(654.5,130.02631579) scale(1.1754385965)" fill="none" stroke="#2a9d8f" stroke-width="2.5522388060" stroke-linecap="round" stroke-linejoin="round">
     <rect x="18" y="0" width="20" height="14" rx="3"/>
     <path d="M28 14 V26 M8 37 V26 H48 V37"/>
     <rect x="0" y="37" width="17" height="14" rx="3"/>
     <rect x="40" y="37" width="17" height="14" rx="3"/>
   </g>
-  <text x="731" y="150" font-size="31" font-weight="bold" fill="#263744">PPMI split</text>
-  <text x="731" y="180" font-size="28" fill="#263744">Outcome-stratified 70:30</text>
-  <rect x="650" y="200" width="235" height="90" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
-  <rect x="915" y="200" width="235" height="90" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
-  <text x="768" y="236" font-size="29" text-anchor="middle" fill="#263744">Training</text>
-  <text x="768" y="274" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 969</text>
-  <text x="1033" y="236" font-size="29" text-anchor="middle" fill="#263744">Internal test</text>
-  <text x="1033" y="274" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 416</text>
-  <rect x="650" y="315" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
-  <text x="675" y="354" font-size="30" font-weight="bold" fill="#263744">Age-only set: 1 predictor</text>
-  <text x="675" y="391" font-size="28" fill="#596775">Age</text>
-  <rect x="650" y="435" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
-  <text x="675" y="474" font-size="30" font-weight="bold" fill="#263744">Basic set: 5 predictors</text>
-  <text x="675" y="511" font-size="28" fill="#596775">Age, sex, height, weight, BMI</text>
+  <text x="744" y="150" font-size="31" font-weight="bold" fill="#263744">PPMI split</text>
+  <text x="744" y="186" font-size="28" fill="#263744">Outcome-stratified 70:30</text>
+  <rect x="650" y="211" width="235" height="90" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <rect x="915" y="211" width="235" height="90" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="768" y="247" font-size="29" text-anchor="middle" fill="#263744">Training</text>
+  <text x="768" y="285" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 969</text>
+  <text x="1033" y="247" font-size="29" text-anchor="middle" fill="#263744">Internal test</text>
+  <text x="1033" y="285" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 416</text>
+  <rect x="650" y="319" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="675" y="358" font-size="30" font-weight="bold" fill="#263744">Age-only set: 1 predictor</text>
+  <text x="675" y="395" font-size="28" fill="#596775">Age</text>
+  <rect x="650" y="437" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="675" y="476" font-size="30" font-weight="bold" fill="#263744">Basic set: 5 predictors</text>
+  <text x="675" y="513" font-size="28" fill="#596775">Age, sex, height, weight, BMI</text>
   <rect x="650" y="555" width="500" height="182" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
   <text x="675" y="594" font-size="30" font-weight="bold" fill="#263744">Full set: 21 predictors</text>
   <text x="675" y="633" font-size="28" fill="#596775">Age, sex, height, weight, BMI</text>
@@ -68,22 +68,22 @@
   <circle cx="1257" cy="57" r="22" fill="#ffffff"/>
   <text x="1257" y="68" font-size="31" font-weight="bold" text-anchor="middle" fill="#80649e">3</text>
   <text x="1292" y="67" font-size="30" font-weight="bold" fill="#ffffff">Training-only development</text>
-  <g id="training-icon" transform="translate(1252,112)" fill="none" stroke="#80649e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <g id="training-icon" data-visual-size="70" transform="translate(1250.48,126.5) scale(1.34)" fill="none" stroke="#80649e" stroke-width="2.2388059701" stroke-linecap="round" stroke-linejoin="round">
     <rect x="9" y="6" width="38" height="38" rx="7"/>
     <path d="M18 0 V6 M28 0 V6 M38 0 V6 M18 44 V50 M28 44 V50 M38 44 V50 M3 15 H9 M3 25 H9 M3 35 H9 M47 15 H53 M47 25 H53 M47 35 H53"/>
     <circle cx="28" cy="25" r="8"/>
   </g>
-  <text x="1320" y="150" font-size="31" font-weight="bold" fill="#263744">18 prediction strategies</text>
-  <text x="1250" y="206" font-size="28" fill="#596775">Six algorithms: LR, SVM, RF,</text>
-  <text x="1250" y="246" font-size="28" fill="#596775">XGBoost, CatBoost and NN</text>
-  <text x="1250" y="286" font-size="28" fill="#596775">Each with all three predictor sets</text>
-  <line x1="1250" y1="310" x2="1750" y2="310" stroke="#c7b9d8" stroke-width="2"/>
+  <text x="1344" y="150" font-size="31" font-weight="bold" fill="#263744">18 prediction strategies</text>
+  <text x="1344" y="186" font-size="28" fill="#263744">3 predictor sets × 6 algorithms</text>
+  <text x="1250" y="246" font-size="28" fill="#596775">Six algorithms: LR, SVM, RF,</text>
+  <text x="1250" y="286" font-size="28" fill="#596775">XGBoost, CatBoost and NN</text>
+  <line x1="1250" y1="309" x2="1750" y2="309" stroke="#c7b9d8" stroke-width="2"/>
   <text x="1250" y="349" font-size="30" font-weight="bold" fill="#263744">Within model-fitting subsets</text>
   <text x="1250" y="390" font-size="29" fill="#263744">Capping, imputation, scaling</text>
   <text x="1250" y="430" font-size="29" fill="#263744">100 TPE trials per strategy</text>
   <text x="1250" y="470" font-size="29" fill="#263744">Mean five-fold AUROC selection</text>
   <text x="1250" y="510" font-size="29" fill="#263744">Training-only early stopping</text>
-  <path d="M1500 535 V567" stroke="#596775" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M1500 525 V567" stroke="#596775" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
   <rect x="1250" y="579" width="500" height="158" rx="10" fill="#ffffff" stroke="#c7b9d8" stroke-width="2"/>
   <text x="1275" y="613" font-size="30" font-weight="bold" fill="#263744">Final model application</text>
   <text x="1275" y="649" font-size="29" fill="#263744">Refit on all 969 training records</text>
