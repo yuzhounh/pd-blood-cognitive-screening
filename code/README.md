@@ -1,52 +1,63 @@
-# v3.0 analysis and manuscript reproduction
+# v4.0: 18-strategy analysis and reproduction guide
 
-The primary analysis uses updated raw PPMI records and the released FAHHAUST-PD worksheet. The earlier publication's PPMI table is used only for Supplementary Tables S5–S6. The final modeling runner is `bayes100.py`; historical pilot runners are not required for the main comparison.
+The current analysis crosses six algorithms with three nested predictor sets on the same participants. Set 1 is age alone; Set 2 is age, sex, height, weight and BMI; Full set adds 16 routine blood predictors. The samples contain 969 training, 416 internal-test and 197 external LY-PD participants. Positivity is MoCA <26 or NP1COG >=1, with both observed. The main comparison is Full set minus Set 2 within each algorithm.
 
-## Inputs
+The v4.0 author release is fixed. Eight compatible cleaned v3.2 fits are reused and ten reduced-input fits complete the 18-strategy matrix. The independent retained-measurement sensitivity still contains eight strategies; the earlier-paper reconstruction is separate. The table-display correction dated 2026-11-15 changes one rounded interval bound, not fitted estimates or scientific conclusions.
 
-Restricted input files are not distributed with the code. Authorized researchers must place the PPMI exports under `data/raw/ppmi_2026-10-14/` and the source supplementary workbook at `data/raw/published_cohorts.xlsx`. The cohort builder specifies the required table names. Export versions, input hashes, ordered predictor names, and cohort counts are recorded in the source and search manifests. `environment_snapshot.json` records the environments actually used; per-strategy receipts retain exact package versions. Installing a compatible environment alone is not a claim of bitwise identical retraining.
+## Environment and required private artifacts
 
-From the project root, the input-building sequence is:
+Training used Python 3.12.15, NumPy 1.26.4, pandas 2.2.2, SciPy 1.13.1, scikit-learn 1.5.1, Optuna 4.7.0, XGBoost 3.0.0 and CatBoost 1.2.8. `requirements.txt` specifies the training dependencies; `environment_snapshot.json` also records the separate executed postprocessing environment. The author's temporary package-loading directory is a local implementation detail, not a distributed dependency. Exact retraining may depend on package versions, ordered inputs and platform.
+
+Run commands from the project root in an authorized reproduction workspace. Code checkout alone does not supply these prerequisites:
+
+- PPMI exports dated 13 October 2026 under `data/raw/ppmi_2026-10-14/`, and the source external workbook at `data/raw/published_cohorts.xlsx`.
+- The aligned cohort and participant split in `data/derived/cog_pm3/`, external table in `data/derived/cog_v1/`, and cleaned arrays `training.npz`, `internal.npz`, `external.npz` plus `input_manifest.json` in `data/derived/bayes100_input/`.
+- For postprocessing-only reproduction, baseline prediction packets in `data/derived/bayes100/`, additional packets in `data/derived/B129 Full Factorial Predictions/`, and their receipts in `manuscript/results/bayes100/` and `manuscript/results/B129 Full Factorial/`.
+- Baseline compatibility/protection records, saved baseline calibration intervals, and independently retained B128 measurement-sensitivity results. The table generator reads that comparison to display S9. Full figure/manuscript generation also requires the author's descriptive aggregate results and manuscript sources.
+
+These artifacts contain private data or belong to the full author workspace and are not part of this public code release. The cohort-building modules (`prepare_cog_ppmi.py`, `rematch_body_pm3.py`, `prepare_bayes100_inputs.py`, `body_window.py`, `body_rules.py`) document the underlying rules. `freeze_cog_split.py` reproduces the current stratified split from the aligned cohort in its original row order; it verifies an existing split and refuses to replace a different one. Historical builders depend on prior derived artifacts and are not a single clean-checkout bootstrap command. Do not run their historical main functions over an existing frozen release.
+
+Cleaned measurements require height 100–250 cm inclusive and finite positive weight before nearest complete-pair matching within three calendar months of the index. BMI is recomputed from the selected pair. Invalid or missing predictors do not remove participants. Frozen participant allocation and outcome labels are preserved.
+
+## Model development: eight baseline fits plus ten additional fits
+
+The registry in `factorial_protocol.py` defines all 18 strategies and their source paths. `bayes100.py` supplies the shared learner, search and stopping routines. With the required cleaned input artifacts already prepared, the baseline training command is:
 
 ```powershell
-python code/prepare_cog_ppmi.py
-python code/prepare_bayes100_inputs.py
+python code/freeze_cog_split.py --check
 python code/prepare_bayes100_inputs.py --check
+python code/bayes100.py --trials 100 --workers 1 --models Age_LR Basic_LR LR SVM RF XGBoost CatBoost NN
 ```
 
-The second command matches complete height/weight records within ±3 calendar months, calculates BMI, and exports the fixed 969/416/197 input arrays. Existing split IDs and input manifests are checked and never silently replaced. Current verified arrays already exist; rebuilding them is unnecessary for manuscript reproduction.
-
-## Model development
-
-`bayes100.py` performs 100 TPE trials for each strategy, maximizing arithmetic mean training five-fold AUROC. It fits preprocessing within model-fitting subsets, chooses early-stopping counts within training data, refits on all 969 training participants, fixes an OOF Youden threshold, and only then opens held-out input arrays. The six full-panel strategies use 21 predictors; `Age_LR` and `Basic_LR` receive one and five columns. Class weights and outcome-based resampling are disabled.
-
-For a fresh authorized compute run, a single-worker example is:
+The original study already had those eight compatible fits. Its extension checked and reused them, then trained only ten additional strategies:
 
 ```powershell
-python code/bayes100.py --trials 100 --workers 1 --models LR SVM RF XGBoost CatBoost NN Age_LR Basic_LR
+python code/factorial_preflight.py
+python code/factorial_bayes100.py --workers 1
 ```
 
-Completed predictions are private files in `data/derived/bayes100/`; aggregate receipts and all trial configurations are in `manuscript/results/bayes100/`. The actual v3.0 run used Server 141 for seven strategies and Server 140 for XGBoost. Code, preprocessing, input, environment, and prediction signatures are recorded. No new training is needed to inspect the completed analysis.
+The preflight checks input/software compatibility, participant identity and columnwise preprocessing equivalence; it also performs ten small training-fold smoke fits. The full runner performs ten independent 100-trial TPE searches. Every strategy uses the same five stratified folds and seed 20261014. Boosted trees and NN use training-only early stopping; preprocessing and models are finally refitted on all 969 training participants with stopping counts fixed. OOF Youden thresholds are fixed before either evaluation cohort is scored. No feature selection, class weighting or outcome resampling is used in the primary analysis.
 
-## Reproduce the current outputs
+These commands perform scientific computation and are documentation, not a claim that a fresh run was performed for this release. Existing compatible receipts are reused; incompatible receipts are rejected. Work in a separate reproduction workspace for a new run, preserving the frozen author results.
 
-The current source/PDF pairs are `manuscript/manuscript.tex` and `manuscript.pdf`, and `manuscript/supplementary_materials.tex` and `supplementary_materials.pdf`. `build_manuscript.py` compiles these names directly. For a formatting-only revision, run only that builder; the analysis and figure regeneration commands below are not needed. The common template uses 11-point Latin Modern text, A4 with 2.5 cm margins, double line spacing, 10/12-point captions, and 9/11-point tables and notes. Table generators retain the shared typography and account for column padding.
+## Postprocessing from completed predictions
 
-With the retained predictions, this sequence regenerates inference, tables, figures, PDFs, and checks:
+With all private prerequisites available, the current sequence is:
 
 ```powershell
-python code/finalize_bayes100.py
-python code/validate_bayes100.py
-python code/paper_bayes100_tables.py
-python code/calibration_bayes100_figure.py
-python code/manuscript_figures.py
-python code/main_presentation_figures.py
-python code/build_manuscript.py
-python code/validate_bayes100_manuscript.py
+python code/factorial_statistics.py
+python code/factorial_tables.py
+python code/factorial_figures.py
+python code/build_manuscript.py --factorial
+python code/validate_factorial_manuscript.py
 ```
 
-The summarizer does not retrain predictive models. It uses 2,000 paired outcome-stratified participant bootstrap samples conditional on fitted models. Calibration models and probability-bin plots describe saved predictions without recalibration. Arial must be installed for figure export. PDF builds require TeX Live with `latexmk` and Poppler's `pdftotext`; auxiliary files stay under `tmp/latex/`, and final PDFs are copied to `manuscript/` after successful checks.
+Statistics produce 36 strategy–cohort performance records, 72 absolute-metric intervals, 72 paired-metric intervals, 36 calibration records and 72 operating-point records. AUROC/Brier and paired differences use 2,000 shared outcome-stratified participant bootstrap samples per cohort. Calibration uses 2,000 ordinary participant bootstrap samples, with compatible baseline intervals reused; classification uses Wilson intervals. These are conditional on fitted prediction models, without model-development bootstrap. The validation script independently re-estimates selected paired bootstrap intervals; it does not retrain prediction models. Model comparisons are exploratory and unadjusted for multiplicity; intervals crossing zero do not establish equivalence.
 
-Tables 1/4, Supplementary Table S1, and the ancillary S5/S6 are retained descriptive/source-material outputs. They are unchanged by hyperparameter tuning. Table 4 was promoted from the supplement without recalculating its values. The four main figures cover the editable study workflow, AUROC/case mix, empirical ROC curves, and nested-LR calibration; the supplement contains six tables and no duplicated figures. `main_presentation_figures.py` exports the maintained workflow SVG using Inkscape and plots the ROC curves from frozen predictions, checking all 16 AUROCs against the retained results without refitting or updating thresholds. The calibration generator now writes `figure4_calibration.pdf/png`. `six_model_tables.py` and `manuscript_statistics.py` supply reusable formatting helpers to the current generator, but their historical main functions must not overwrite the current model tables. The earlier limited-search validator is likewise superseded by `validate_bayes100_manuscript.py`.
+`factorial_tables.py` renders the current main performance/increment tables and supplementary tables. `difference_interval` adds decimal places when a nonzero difference or bound would otherwise round to zero. For example, the internal XGBoost Brier interval displays `0.0002 (-0.00003 to 0.0005)`. Stored unrounded estimates are unchanged.
 
-Raw records, identifiers, participant-level predictions, temporary build files, references, and caches are excluded from version control. Current final manuscript and supplementary PDFs are deliverables. The immutable v2.0 snapshot is documented in `review/version.md`; v3.0 has been tagged and snapshotted as a stable release.
+`factorial_figures.py` exports the 18-strategy workflow, both cohorts' 18-strategy AUROC plots, six-algorithm increment plots, 36 ROC curves, and non-LR calibration panels. Main Figure 4 retains the three LR calibration comparisons; its generator is `calibration_bayes100_figure.py`. Age case mix is Supplementary Figure S1. Figure export requires Arial and Inkscape; PDF compilation requires TeX Live/`latexmk` and `pdftotext`.
+
+Main Tables 1 and 4 describe the common cohort and case mix. Table 2 reports six Full-set models; Table 3 reports their within-algorithm blood increments. S2B contains 18 selected configurations; S3A/B contain 18 performances per cohort; S4 contains 36 calibration rows; S5A/B contain 36 classification rows per cohort. S6 holds secondary predictor-set contrasts. The earlier-publication reconstruction is S7/S8; the retained eight-strategy measurement sensitivity is S9. No additional 18-strategy sensitivity experiment is implied.
+
+Publication scripts include older helper modules for imports and provenance. Their historical main functions are superseded by the current route above. Restricted inputs, individual predictions, fitted objects and manuscript snapshots remain outside this public repository.

@@ -1,13 +1,13 @@
 {
-  "version": "v3.0",
-  "client_date": "2026-10-15",
+  "version": "v4.0",
+  "client_date": "2026-11-15",
   "training_environment_by_strategy": {
     "Age_LR": {
       "numpy": "1.26.4",
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     },
@@ -16,7 +16,7 @@
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     },
@@ -25,7 +25,25 @@
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "SVM_Set1": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "SVM_Set2": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     },
@@ -34,7 +52,25 @@
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "RF_Set1": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "RF_Set2": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     },
@@ -43,7 +79,25 @@
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "XGBoost_Set1": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "XGBoost_Set2": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     },
@@ -53,15 +107,51 @@
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
       "xgboost": "3.0.0",
-      "catboost": null,
-      "optuna": "4.6.0"
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "CatBoost_Set1": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "CatBoost_Set2": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
     },
     "CatBoost": {
       "numpy": "1.26.4",
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "NN_Set1": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
+      "catboost": "1.2.8",
+      "optuna": "4.7.0"
+    },
+    "NN_Set2": {
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "scipy": "1.13.1",
+      "scikit-learn": "1.5.1",
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     },
@@ -70,28 +160,36 @@
       "pandas": "2.2.2",
       "scipy": "1.13.1",
       "scikit-learn": "1.5.1",
-      "xgboost": null,
+      "xgboost": "3.0.0",
       "catboost": "1.2.8",
       "optuna": "4.7.0"
     }
   },
   "postprocessing_environment": {
-    "python": "3.13.5 | packaged by Anaconda, Inc. | (main, Jun 12 2025, 16:37:03) [MSC v.1929 64 bit (AMD64)]",
+    "python": "3.14.6 | packaged by Anaconda, Inc. | (main, Jul  9 2026, 14:29:05) [MSC v.1942 64 bit (AMD64)]",
     "platform": "Windows-11-10.0.26300-SP0",
     "packages": {
-      "numpy": "2.1.3",
-      "pandas": "2.2.3",
-      "scipy": "1.15.3",
-      "scikit-learn": "1.6.1",
+      "numpy": "2.4.6",
+      "pandas": "3.0.3",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0",
       "optuna": "5.0.0",
-      "xgboost": "3.2.0",
-      "catboost": "1.2.8",
+      "xgboost": "3.4.1",
+      "catboost": "1.2.10",
       "openpyxl": "3.1.5",
-      "matplotlib": "3.10.0",
-      "statsmodels": "0.14.4",
+      "matplotlib": "3.11.0",
+      "statsmodels": "0.14.6",
       "threadpoolctl": "3.5.0"
     }
   },
-  "provenance": "Training versions come from completed model receipts; postprocessing environment queried locally.",
-  "dependencies": "requirements.txt lists compatible final-pipeline dependencies; exact training environments are retained per strategy."
+  "provenance": "B129 18-strategy receipts: eight compatible v3.2 fits referenced without copying, ten new reduced-input fits; B128 cleaned and retained-measurement conditions unchanged.",
+  "dependencies": "requirements.txt lists compatible final-pipeline dependencies; exact training environments are retained per strategy.",
+  "training_python": "3.12.15",
+  "training_loading_directory": "tmp/B128 Dependencies/site (pandas 2.2.2 and scikit-learn 1.5.1 only)",
+  "status": "stable v4.0 release authorized by author",
+  "reused_strategy_count": 8,
+  "new_strategy_count": 10,
+  "new_selection_trials": 1000,
+  "retained_selection_trials": 1800,
+  "factorial_result_manifest": "manuscript/results/B129 Full Factorial/experiment_manifest.json"
 }

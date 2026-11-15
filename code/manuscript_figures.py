@@ -1,5 +1,6 @@
 """Publication figures from frozen model results and within-cohort age comparisons."""
 from pathlib import Path
+from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS
 import json
 import matplotlib
 matplotlib.use('Agg')
@@ -39,14 +40,16 @@ def flow_figure():
     workflow_figure()
 
 
-def comparison_figure():
+def comparison_figure(reuse_statistics=False):
     path=ROOT/'manuscript/results/bayes100/all_model_performance.csv'
     performance=pd.read_csv(path)
     names=['Age_LR','Basic_LR','LR','SVM','RF','XGBoost','CatBoost','NN']
     assert len(performance)==16 and set(performance.model)==set(names)
-    fig=plt.figure(figsize=(8.6,6.0))
-    grid=fig.add_gridspec(1,2,width_ratios=[1.5,1.25],left=.17,right=.99,bottom=.19,top=.9,wspace=.32)
+    fig=plt.figure(figsize=(9.2,5.7))
+    grid=fig.add_gridspec(1,2,width_ratios=[1,1],left=.14,right=.99,bottom=.16,top=.9,wspace=.30)
     ax=fig.add_subplot(grid[0,0]);age_ax=fig.add_subplot(grid[0,1])
+    for panel in [ax,age_ax]:
+        panel.set_box_aspect(5/4)
     y=np.arange(len(names))[::-1]
     for value in y[:2]:
         ax.axhspan(value-.44,value+.44,color='#eef2f5',zorder=0)
@@ -56,14 +59,20 @@ def comparison_figure():
                     xerr=np.vstack([ordered.AUROC-ordered.AUROC_low,ordered.AUROC_high-ordered.AUROC]),
                     fmt='o',ms=4.6,color=color,elinewidth=1.15,capsize=2.2,capthick=1,zorder=3)
     ax.axvline(.5,lw=.9,ls='--',color='#8b959c',zorder=1)
-    ax.set_yticks(y,['Age-only LR','Basic LR (5)','LR','SVM','RF','XGBoost','CatBoost','NN'],fontsize=10.5)
-    ax.set(xlim=(.45,.85),ylim=(-.7,len(names)-.2),xlabel='AUROC (95% CI)')
+    ax.set_yticks(y,[MODEL_LABELS[name] for name in names],fontsize=10.5)
+    ax.set(xlim=(.45,.85),ylim=(-.7,len(names)-.2))
     ax.set_xticks([.5,.6,.7,.8]);ax.grid(axis='x',color='#e6eaed',lw=.65,zorder=0)
-    ax.set_title('A. Discrimination',loc='left',fontsize=12,weight='bold',pad=12)
+    ax.set_title('A. Discrimination (AUROC, 95% CI)',loc='left',fontsize=12,weight='bold',pad=12)
     ax.spines['left'].set_visible(False);ax.tick_params(axis='y',length=0,pad=7)
-    handles=[Line2D([0],[0],color=BLUE,marker='o',lw=1,label='Internal PPMI (n=416)'),
-             Line2D([0],[0],color=ORANGE,marker='o',lw=1,label='FAHHAUST (n=197)')]
-    ax.legend(handles=handles,loc='upper left',bbox_to_anchor=(-.05,-.16),frameon=False,fontsize=9.7,handlelength=1.5)
+    footer_y=-.11
+    for x,label,color in [(-.03,'Internal PPMI (n=416)',BLUE),
+                          (.58,'External LY-PD (n=197)',ORANGE)]:
+        ax.plot([x,x+.065],[footer_y,footer_y],transform=ax.transAxes,
+                clip_on=False,color=color,lw=1)
+        ax.plot([x+.0325],[footer_y],transform=ax.transAxes,
+                clip_on=False,color=color,marker='o',ms=4.6)
+        ax.text(x+.09,footer_y,label,transform=ax.transAxes,
+                ha='left',va='center',fontsize=9.7)
     ppmi,_=clean_sheet(pd.read_csv(ROOT/'data/derived/cog_pm3/ppmi_cog.csv'))
     external,_=clean_sheet(pd.read_csv(ROOT/'data/derived/cog_v1/fahhaust.csv'))
     split=np.load(ROOT/'data/derived/cog_pm3/frozen_split.npz')
@@ -75,17 +84,21 @@ def comparison_figure():
             arrays.append(a)
             summary.append(dict(cohort=cohort,COG=cog,n=int(len(a)),mean=float(a.mean()),
                                 median=float(np.median(a)),q1=float(np.quantile(a,.25)),q3=float(np.quantile(a,.75))))
-    tests=[]
-    for i,cohort in enumerate(['PPMI_internal','FAHHAUST_external']):
-        negative,positive=arrays[2*i:2*i+2]
-        result=ttest_ind(positive,negative,equal_var=False,alternative='two-sided')
-        tests.append(dict(cohort=cohort,n_negative=len(negative),n_positive=len(positive),
-                          mean_negative=float(negative.mean()),mean_positive=float(positive.mean()),
-                          mean_difference=float(positive.mean()-negative.mean()),
-                          statistic=float(result.statistic),df=float(result.df),p_raw=float(result.pvalue)))
-    adjusted=multipletests([r['p_raw'] for r in tests],method='holm')[1]
-    for row,p in zip(tests,adjusted): row['p_holm']=float(p)
-    pd.DataFrame(tests).to_csv(OUT/'figure2_age_tests.csv',index=False)
+    if reuse_statistics:
+        tests=pd.read_csv(OUT/'figure2_age_tests.csv').to_dict('records')
+        assert [r['cohort'] for r in tests]==['PPMI_internal','FAHHAUST_external']
+    else:
+        tests=[]
+        for i,cohort in enumerate(['PPMI_internal','FAHHAUST_external']):
+            negative,positive=arrays[2*i:2*i+2]
+            result=ttest_ind(positive,negative,equal_var=False,alternative='two-sided')
+            tests.append(dict(cohort=cohort,n_negative=len(negative),n_positive=len(positive),
+                              mean_negative=float(negative.mean()),mean_positive=float(positive.mean()),
+                              mean_difference=float(positive.mean()-negative.mean()),
+                              statistic=float(result.statistic),df=float(result.df),p_raw=float(result.pvalue)))
+        adjusted=multipletests([r['p_raw'] for r in tests],method='holm')[1]
+        for row,p in zip(tests,adjusted): row['p_holm']=float(p)
+        pd.DataFrame(tests).to_csv(OUT/'figure2_age_tests.csv',index=False)
     positions=[.8,1.6,3.0,3.8]
     bp=age_ax.boxplot(arrays,positions=positions,widths=.52,patch_artist=True,showfliers=False,
                       medianprops=dict(color=INK,lw=1.6),whiskerprops=dict(lw=1),capprops=dict(lw=1))
@@ -94,10 +107,10 @@ def comparison_figure():
     max_age=max(float(a.max()) for a in arrays)
     lower=5*np.floor(min(float(a.min()) for a in arrays)/5)
     upper=5*np.ceil(max_age/5)+18
-    age_ax.set(ylim=(lower,upper),xlim=(.2,4.4),ylabel='Age, years')
+    age_ax.set(ylim=(lower,upper),xlim=(.2,4.4),ylabel='Age (years)')
     age_ax.set_xticks(positions,['COG−','COG+','COG−','COG+'],fontsize=10.2)
-    age_ax.text(1.2,-.095,'Internal\nPPMI',transform=age_ax.get_xaxis_transform(),ha='center',va='top',fontsize=10.2)
-    age_ax.text(3.4,-.095,'External\nFAHHAUST',transform=age_ax.get_xaxis_transform(),ha='center',va='top',fontsize=10.2)
+    age_ax.text(1.2,footer_y,'Internal PPMI',transform=age_ax.get_xaxis_transform(),ha='center',va='center',fontsize=10.2)
+    age_ax.text(3.4,footer_y,'External LY-PD',transform=age_ax.get_xaxis_transform(),ha='center',va='center',fontsize=10.2)
     age_ax.set_title('B. Age by COG status',loc='left',fontsize=12,weight='bold',pad=12)
     age_ax.grid(axis='y',color='#e6eaed',lw=.65);age_ax.set_axisbelow(True)
     gap_internal=summary[1]['mean']-summary[0]['mean'];gap_external=summary[3]['mean']-summary[2]['mean']
@@ -112,19 +125,24 @@ def comparison_figure():
     assert np.isclose(gap_internal,2.34105090311988) and np.isclose(gap_external,8.06863387978142)
     assert sum(r['n'] for r in summary if r['cohort']=='PPMI_internal')==413
     assert sum(r['n'] for r in summary if r['cohort']=='FAHHAUST_external')==197
-    pd.DataFrame(summary).to_csv(OUT/'figure2_age_summary.csv',index=False)
+    if not reuse_statistics:
+        pd.DataFrame(summary).to_csv(OUT/'figure2_age_summary.csv',index=False)
+    fig.canvas.draw()
+    assert all(np.isclose(panel.get_window_extent().height/panel.get_window_extent().width,5/4)
+               for panel in [ax,age_ax])
     export(fig,'figure2_performance_case_mix')
 
 
-def main():
+def main(reuse_statistics=False):
     FIG.mkdir(parents=True,exist_ok=True)
     sources=[ROOT/'manuscript/results/bayes100/all_model_performance.csv',ROOT/'data/derived/cog_pm3/ppmi_cog.csv',
              ROOT/'data/derived/cog_v1/fahhaust.csv',ROOT/'data/derived/cog_pm3/frozen_split.npz']
     before={p.relative_to(ROOT).as_posix():sha(p) for p in sources}
-    flow_figure();comparison_figure()
+    flow_figure();comparison_figure(reuse_statistics=reuse_statistics)
     assert all(sha(ROOT/rel)==expected for rel,expected in before.items())
     write_json(OUT/'figure_manifest.json',dict(status='generated',code_sha256=sha(__file__),
-                input_sha256=before,model_refits=0,new_statistical_tests=2,
+                input_sha256=before,model_refits=0,new_statistical_tests=0 if reuse_statistics else 2,
+                existing_age_inference_reused=reuse_statistics,
                 age_tests_sha256=sha(OUT/'figure2_age_tests.csv'),
                 figure2_points=16,figure2_age_observations=610,font_family=FONT_FAMILY,
                 output_sha256={p.relative_to(ROOT).as_posix():sha(p) for p in sorted(FIG.glob('*'))

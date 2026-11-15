@@ -1,5 +1,6 @@
 """Export the editable study workflow and empirical ROCs from frozen predictions."""
 from pathlib import Path
+from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS
 import json
 import shutil
 import subprocess
@@ -19,7 +20,7 @@ FIG = ROOT / 'manuscript/figures'
 OUT = ROOT / 'manuscript/results/bayes100'
 PRIVATE = ROOT / 'data/derived/bayes100'
 NAMES = ['Age_LR', 'Basic_LR', 'LR', 'SVM', 'RF', 'XGBoost', 'CatBoost', 'NN']
-LABELS = ['Age-only LR', 'Basic LR (5)', 'Full-panel LR', 'SVM', 'RF', 'XGBoost', 'CatBoost', 'NN']
+LABELS = [MODEL_LABELS[name] for name in NAMES]
 COLORS = ['#596775', '#285f8f', '#c7652e', '#2a9d8f', '#80649e', '#9c6644', '#b34f79', '#809c32']
 STYLES = ['--', '-.', '-', '-', ':', '--', '-.', ':']
 
@@ -38,37 +39,44 @@ def workflow_figure():
                    check=True, capture_output=True)
 
 
-def roc_figure():
+def roc_figure(reuse_coordinates=False):
     font_manager.findfont(font_manager.FontProperties(family='Arial'), fallback_to_default=False)
     plt.rcParams.update({'font.family': 'Arial', 'font.size': 10.5, 'pdf.fonttype': 42,
                          'ps.fonttype': 42, 'axes.unicode_minus': True,
                          'axes.spines.top': False, 'axes.spines.right': False})
     performance = pd.read_csv(OUT / 'all_model_performance.csv')
-    fig, axes = plt.subplots(1, 2, figsize=(9.2, 5.25))
+    retained = pd.read_csv(OUT / 'roc_curves.csv') if reuse_coordinates else None
+    fig, axes = plt.subplots(1, 2, figsize=(9.2, 5.3))
     coordinates = []
     observed = []
     for ax, (cohort, ykey, pkey, idkey, title, expected_n) in zip(axes, [
         ('PPMI_internal', 'yi', 'pi', 'internal_id', 'A. Internal PPMI (n=416)', 416),
-        ('FAHHAUST_external', 'ye', 'p', 'external_id', 'B. External FAHHAUST (n=197)', 197),
+        ('FAHHAUST_external', 'ye', 'p', 'external_id', 'B. External LY-PD (n=197)', 197),
     ]):
         reference_ids = reference_y = None
+        legend_rows = []
         for index, (name, label, color, style) in enumerate(zip(NAMES, LABELS, COLORS, STYLES)):
-            with np.load(PRIVATE / (name + '.npz'), allow_pickle=False) as data:
-                y, probability, identifiers = data[ykey], data[pkey], data[idkey]
-            assert len(y) == len(probability) == len(identifiers) == expected_n
-            assert np.isfinite(probability).all() and np.isin(y, [0, 1]).all()
-            if reference_ids is None:
-                reference_ids, reference_y = identifiers, y
+            if reuse_coordinates:
+                points = retained.loc[retained.cohort.eq(cohort) & retained.model.eq(name)]
+                fpr, tpr = points.fpr.to_numpy(), points.tpr.to_numpy()
             else:
-                assert np.array_equal(identifiers, reference_ids) and np.array_equal(y, reference_y)
-            fpr, tpr, _ = roc_curve(y, probability)
+                with np.load(PRIVATE / (name + '.npz'), allow_pickle=False) as data:
+                    y, probability, identifiers = data[ykey], data[pkey], data[idkey]
+                assert len(y) == len(probability) == len(identifiers) == expected_n
+                assert np.isfinite(probability).all() and np.isin(y, [0, 1]).all()
+                if reference_ids is None:
+                    reference_ids, reference_y = identifiers, y
+                else:
+                    assert np.array_equal(identifiers, reference_ids) and np.array_equal(y, reference_y)
+                fpr, tpr, _ = roc_curve(y, probability)
             record = performance.loc[performance.cohort.eq(cohort) & performance.model.eq(name)].iloc[0]
             area = auc(fpr, tpr)
             assert np.isclose(area, record.AUROC, rtol=0, atol=1e-12), (cohort, name, area)
             ax.plot(fpr, tpr, color=color, linestyle=style,
                     linewidth=2.05 if index < 3 else 1.15,
                     alpha=1.0 if index < 3 else 0.92,
-                    label=f'{label}  {area:.3f}', zorder=4 if index < 3 else 2)
+                    label=label, zorder=4 if index < 3 else 2)
+            legend_rows.append((label, area, color, style, index < 3))
             coordinates.extend(dict(cohort=cohort, model=name, fpr=float(x), tpr=float(z))
                                for x, z in zip(fpr, tpr))
             observed.append(dict(cohort=cohort, model=name, n=expected_n, AUROC=float(area),
@@ -77,21 +85,68 @@ def roc_figure():
         ax.set(xlim=(0, 1), ylim=(0, 1), xlabel='1 − specificity', ylabel='Sensitivity')
         ax.set_xticks(np.linspace(0, 1, 6)); ax.set_yticks(np.linspace(0, 1, 6))
         ax.set_title(title, loc='left', fontsize=11.8, fontweight='bold', pad=11)
-        ax.set_aspect('equal', adjustable='box')
+        ax.set_box_aspect(4/5)
         ax.grid(color='#e6eaed', linewidth=.6, zorder=0)
-        ax.legend(loc='upper left', bbox_to_anchor=(-.04, -.19), ncol=2,
-                  frameon=False, fontsize=10.0, handlelength=2.4, columnspacing=1.0,
-                  handletextpad=.6, borderaxespad=0)
-    fig.subplots_adjust(left=.075, right=.985, top=.90, bottom=.29, wspace=.25)
+        # Separate text columns align names and numerical AUROCs without padded spaces.
+        for col in range(2):
+            base = .55 * col
+            ax.text(base + .055, -.22, 'Strategy', transform=ax.transAxes,
+                    fontsize=9.6, weight='bold', ha='left', va='center')
+            ax.text(base + .44, -.22, 'AUROC', transform=ax.transAxes,
+                    fontsize=9.6, weight='bold', ha='right', va='center')
+            for row, (label, area, color, style, emphasized) in enumerate(legend_rows[col*4:(col+1)*4]):
+                yy = -.305 - .083 * row
+                ax.plot([base-.025, base+.035], [yy, yy], transform=ax.transAxes,
+                        clip_on=False, color=color, linestyle=style,
+                        linewidth=2.05 if emphasized else 1.15)
+                ax.text(base+.055, yy, label, transform=ax.transAxes,
+                        fontsize=10.0, ha='left', va='center')
+                ax.text(base+.44, yy, f'{area:.3f}', transform=ax.transAxes,
+                        fontsize=10.0, ha='right', va='center')
+    fig.subplots_adjust(left=.075, right=.985, top=.90, bottom=.34, wspace=.25)
+    fig.canvas.draw()
+    assert all(np.isclose(ax.get_window_extent().height/ax.get_window_extent().width,4/5)
+               for ax in axes)
     for extension in ['pdf', 'png']:
         fig.savefig(FIG / ('figure3_roc.' + extension), dpi=600,
                     bbox_inches='tight', pad_inches=.09)
     plt.close(fig)
-    pd.DataFrame(coordinates).to_csv(OUT / 'roc_curves.csv', index=False)
+    if not reuse_coordinates:
+        pd.DataFrame(coordinates).to_csv(OUT / 'roc_curves.csv', index=False)
     return observed
 
 
-def main():
+def main(workflow_only=False, roc_only=False):
+    if workflow_only or roc_only:
+        # A layout revision must not redraw or recompute the retained ROC results.
+        path = OUT / 'presentation_figure_manifest.json'
+        retained = json.loads(path.read_text())
+        workflow_source = 'manuscript/figures/figure1_study_design.svg'
+        for rel, expected in retained['input_sha256'].items():
+            if roc_only or rel != workflow_source:
+                assert sha(ROOT / rel) == expected, rel
+        for rel, expected in retained['output_sha256'].items():
+            assert sha(ROOT / rel) == expected, rel
+        stem = 'figure3_roc' if roc_only else 'figure1_study_design'
+        if roc_only:
+            retained['AUROC_checks'] = roc_figure(reuse_coordinates=True)
+        else:
+            workflow_figure()
+            retained['input_sha256'][workflow_source] = sha(ROOT / workflow_source)
+        changed = {f'manuscript/figures/{stem}.{ext}':
+                   sha(FIG / f'{stem}.{ext}') for ext in ['pdf', 'png']}
+        retained['output_sha256'].update(changed)
+        retained['code_sha256'] = sha(__file__)
+        retained['latest_revision'] = ('ROC legend labels/alignment only; retained coordinates reused'
+                                      if roc_only else 'Workflow layout only; retained ROC outputs and checks reused')
+        write_json(path, retained)
+        legacy_path = ROOT / 'manuscript/results/manuscript_statistics/figure_manifest.json'
+        legacy = json.loads(legacy_path.read_text())
+        legacy['output_sha256'].update(changed)
+        write_json(legacy_path, legacy)
+        print(json.dumps(dict(status='passed', main_figures_generated=[3 if roc_only else 1],
+                              retained_ROC_evidence_reused=True, model_refits=0)))
+        return
     sources = [FIG / 'figure1_study_design.svg', OUT / 'all_model_performance.csv']
     sources += [PRIVATE / (name + '.npz') for name in NAMES]
     inputs = {p.relative_to(ROOT).as_posix(): sha(p) for p in sources}
@@ -119,4 +174,12 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--workflow-only', action='store_true',
+                        help='Export only the maintained SVG and retain existing ROC evidence.')
+    group.add_argument('--roc-only', action='store_true',
+                       help='Redraw only ROC presentation using retained coordinates.')
+    args = parser.parse_args()
+    main(workflow_only=args.workflow_only, roc_only=args.roc_only)

@@ -1,6 +1,7 @@
 """Nearest complete anthropometric observation within a symmetric month window."""
 import numpy as np
 import pandas as pd
+from body_rules import valid_height, valid_weight
 
 
 def nearest_body(index, vital, window=3):
@@ -9,7 +10,7 @@ def nearest_body(index, vital, window=3):
     v['vital_month'] = dt.dt.year * 12 + dt.dt.month
     for c in ['HTCM', 'WGTKG']:
         v[c] = pd.to_numeric(v[c], errors='coerce')
-    v = v.loc[v.HTCM.gt(0) & v.WGTKG.gt(0) & v.vital_month.notna()].copy()
+    v = v.loc[valid_height(v.HTCM) & valid_weight(v.WGTKG) & v.vital_month.notna()].copy()
     keys = ['PATNO', 'EVENT_ID', 'vital_month']
     grouped = v.groupby(keys, dropna=False)
     values = grouped[['HTCM', 'WGTKG']].first()

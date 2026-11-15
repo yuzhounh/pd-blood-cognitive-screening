@@ -1,5 +1,6 @@
 """Current six-algorithm paper tables; original reconstruction is supplementary only."""
 from pathlib import Path
+from display_labels import MODEL_LABELS, PREDICTOR_SET_LABELS
 import json
 import pandas as pd
 from common_preprocessing import write_json,sha
@@ -53,10 +54,10 @@ def main():
     table('table2','Internal and external performance of six algorithms using 21 predictors',
           ['Sample','Algorithm','AUROC (95% CI)','Brier','Accuracy, %','Sensitivity, %','Specificity, %'],rows,
           r'@{\extracolsep{\fill}}llccccc@{}',
-          'Internal PPMI n=416; external FAHHAUST n=197. Each model used the same 969 training participants and 21 predictors. '
+          'Internal PPMI n=416; external LY-PD n=197. Each model used the same 969 training participants and 21 predictors. '
           'Classification measures use the model-specific training out-of-fold Youden threshold, fixed for both evaluation samples. '
           'Lower Brier scores indicate better probability accuracy. '
-          'NN denotes an ordinary fully connected network with three hidden layers. Intervals use 2,000 outcome-stratified participant bootstrap samples conditional on fitted models.',
+          'NN denotes an ordinary fully connected network with three hidden layers. Intervals use 2,000 outcome-stratified participant bootstrap samples conditional on fitted models. \\textbf{Abbreviations:} PPMI, Parkinson\'s Progression Markers Initiative; LY-PD, Luoyang PD cohort; LR, logistic regression; SVM, support vector machine; RF, random forest; NN, neural network; AUROC, area under the receiver operating characteristic curve; CI, confidence interval.',
           group_first=True,full_width=True)
     launch=json.loads((ROOT/'manuscript/results/benchmark21_auc/launch.json').read_text())
     nn=json.loads((OUT/'NN.json').read_text())
@@ -81,7 +82,7 @@ def main():
     lines=[r'\subsection*{Selected settings and operating thresholds}',r'\begingroup\small\raggedright']
     for r in selected:
         lines.append(r'\noindent\textbf{'+r['model']+'}. '+tex(r['configuration'])+f"; training out-of-fold threshold {r['threshold']:.6f}."+r'\par\smallskip')
-    lines += [r'\noindent Age-only LR: $C=0.01$, threshold 0.502105; basic LR: $C=0.1$, threshold 0.499146.',r'\par\endgroup']
+    lines += [r'\noindent LR - Set 1: $C=0.01$, threshold 0.502105; LR - Set 2: $C=0.1$, threshold 0.499146.',r'\par\endgroup']
     (TABLES/'selected_settings.tex').write_text('\n'.join(lines)+'\n',encoding='utf-8')
     pd.DataFrame(selected).to_csv(OUT/'selected_settings.csv',index=False)
     cal=pd.read_csv(OUT/'calibration.csv');assert len(cal)==14 and cal.calibration_fit_success.all()
@@ -89,27 +90,27 @@ def main():
     for cohort in ['PPMI_internal','FAHHAUST_external']:
         for name in ['Basic_LR']+NAMES:
             r=cal.loc[cal.cohort.eq(cohort)&cal.model.eq(name)].iloc[0]
-            rows.append(['Internal' if cohort=='PPMI_internal' else 'External','Basic LR' if name=='Basic_LR' else name,
+            rows.append(['Internal' if cohort=='PPMI_internal' else 'External',MODEL_LABELS[name],
                          f'{r.mean_probability:.3f}',f'{r.observed_fraction:.3f}',f'{r.calibration_intercept_offset:.3f}',f'{r.calibration_slope:.3f}'])
     table('table_s_calibration','Calibration of the basic reference and six full-panel algorithms',
           ['Sample','Model','Mean prediction','Observed fraction','Offset intercept','Slope'],rows,
           r'P{0.10\textwidth}P{0.15\textwidth}P{0.16\textwidth}P{0.16\textwidth}P{0.17\textwidth}P{0.11\textwidth}',
           'Offset intercept estimates calibration-in-the-large with slope fixed at 1; the reported slope comes from a separate model with freely estimated intercept and slope. '
-          'These descriptive evaluation-sample fits did not update predictions. All fits converged.',True)
+          'These descriptive evaluation-sample fits did not update predictions. All fits converged. \\textbf{Abbreviations:} LR, logistic regression; SVM, support vector machine; RF, random forest; NN, neural network.',True)
     case_mix=pd.read_csv(ROOT/'manuscript/results/manuscript_statistics/table_s_case_mix_formatted.csv',
                          dtype=str,keep_default_na=False)
     table('table4','Age and cognitive-component distributions by outcome',
           case_mix.columns.tolist(),case_mix.values.tolist(),
           r'P{0.12\textwidth}P{0.07\textwidth}P{0.07\textwidth}P{0.23\textwidth}P{0.18\textwidth}P{0.23\textwidth}',
           'Both positive means MoCA <26 and cognitive-item score >=1. Percentages in this column use the number of COG-positive participants as the denominator. '
-          'Age summaries use available values before imputation or capping; MoCA was complete.',False)
+          'Age summaries use available values before imputation or capping; MoCA was complete. \\textbf{Abbreviations:} COG, composite cognitive-screening outcome; MoCA, Montreal Cognitive Assessment; SD, standard deviation.',False)
     fixed=pd.read_csv(OUT/'metrics.csv').query("operating_point=='fixed_0.5'")
     rows=[]
     for cohort in ['PPMI_internal','FAHHAUST_external']:
         for name in ['Age_LR','Basic_LR']+NAMES:
             r=fixed.loc[fixed.cohort.eq(cohort)&fixed.model.eq(name)].iloc[0]
             rows.append(['Internal' if cohort=='PPMI_internal' else 'External',
-                         {'Age_LR':'Age LR','Basic_LR':'Basic LR'}.get(name,name),
+                         MODEL_LABELS[name],
                          f'{r.accuracy*100:.1f}',f'{r.sensitivity*100:.1f}',f'{r.specificity*100:.1f}'])
     table('table_s_fixed','Classification performance at the fixed threshold of 0.5',
           ['Sample','Model','Accuracy, %','Sensitivity, %','Specificity, %'],rows,
@@ -134,7 +135,7 @@ def main():
           r'P{0.16\textwidth}P{0.16\textwidth}P{0.37\textwidth}P{0.21\textwidth}',
           'This ancillary analysis is separate from primary model development. A: split observed participants before training-only SMOTE, development n=1,023, observed test n=256. '
           'B: full-table SMOTE before splitting, development n=1,260, test n=316 including 63 synthetic records. '
-          'B is a non-independent diagnostic scenario. Its score is not assigned an independent-test confidence interval; the workflows do not use identical evaluation participants.',True)
+          'B is a non-independent diagnostic scenario. Its score is not assigned an independent-test confidence interval; the workflows do not use identical evaluation participants. \\textbf{Abbreviations:} RF, random forest; NN, neural network; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; SMOTE, synthetic minority oversampling technique.',False)
     combined=TABLES/'table3_combined.tex'
     combined.write_text(combined.read_text(encoding='utf-8').replace(r'\begin{table}[p]',r'\begin{table}[!htbp]'),encoding='utf-8')
     for name in ['table1','table_s_missing']:

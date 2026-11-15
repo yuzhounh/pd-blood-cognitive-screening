@@ -172,6 +172,7 @@ def cv_predictions(name,params,X,y,folds):
 
 def signature(trials):
     record=dict(code=sha(__file__),preprocessing=sha(ROOT/'code/common_preprocessing.py'),
+                body_rules=sha(ROOT/'code/body_rules.py'),
                 inputs=json.loads((DATA/'input_manifest.json').read_text()),
                 trials=trials,seed=SEED,packages=package_versions())
     for filename,expected in record['inputs']['files_sha256'].items():
@@ -284,7 +285,13 @@ if __name__=='__main__':
     parser.add_argument('--pilot',action='store_true');parser.add_argument('--model',choices=NAMES)
     parser.add_argument('--trials',type=int,default=100);parser.add_argument('--workers',type=int,default=4)
     parser.add_argument('--models',nargs='+',choices=NAMES,default=NAMES)
+    parser.add_argument('--input-dir',type=Path)
+    parser.add_argument('--output-dir',type=Path)
+    parser.add_argument('--prediction-dir',type=Path)
     args=parser.parse_args()
+    if args.input_dir: DATA=args.input_dir.resolve()
+    if args.output_dir: OUT=args.output_dir.resolve()
+    if args.prediction_dir: PRIVATE=args.prediction_dir.resolve()
     if args.pilot:pilot(args.models)
     elif args.model:run_model(args.model,args.trials)
     else:sys.exit(controller(args.trials,args.workers,args.models))

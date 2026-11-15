@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import roc_curve
+from body_rules import valid_height, valid_weight
 
 LABS = ['Basophils', 'Eosinophils', 'Hemoglobin', 'Lymphocytes', 'Monocytes', 'NLR',
         'Neutrophils', 'Platelets', 'RBC', 'Serum Chloride', 'Serum Glucose',
@@ -37,6 +38,8 @@ def clean_sheet(frame):
                  'Serum Glucose', 'Serum Potassium', 'Serum Sodium', 'Serum Uric Acid',
                  'Total Protein', 'WBC']:
         d.loc[d[name].le(0), name] = np.nan
+    d.loc[~valid_height(d["height"]), "height"] = np.nan
+    d.loc[~valid_weight(d["weight"]), "weight"] = np.nan
     invalid_subtype = pd.DataFrame(False, index=d.index, columns=SUBTYPES)
     for name in SUBTYPES:
         invalid_subtype[name] = d[name].lt(0) | d[name].gt(d['WBC'])

@@ -1,22 +1,26 @@
 # Routine blood markers for cognitive screening in Parkinson's disease
 
-Analysis code for **Incremental predictive value of routine blood markers for cognitive screening in Parkinson's disease: development in PPMI and external validation in FAHHAUST**.
+Analysis code for **Incremental value of routine blood markers for cognitive screening in Parkinson's disease: a cross-cohort evaluation**.
 
-The study evaluates a concurrent cognitive-screening outcome. It compares age-only, five-predictor basic, and 21-predictor full-panel logistic regression, with six full-panel algorithms providing context. The development, internal-test, and external samples contain 969, 416, and 197 participants, respectively. Adding the blood panel lowered external logistic-regression AUROC relative to the basic reference; these results do not establish a clinically deployable screening tool.
+## Current analysis: v4.0, 18 strategies
 
-## Code and environment
+Six algorithms (LR, SVM, RF, XGBoost, CatBoost and a three-hidden-layer neural network) are each applied to age alone (Set 1), five demographic and anthropometric predictors (Set 2), and all 21 basic and blood predictors (Full set). All 18 strategies use the same 969 PPMI training participants, 416 internal-test participants and 197 Luoyang PD cohort (LY-PD) participants. The outcome is concurrent composite cognitive-screening positivity, not longitudinal cognitive decline.
 
-The final training runner is `code/bayes100.py`. Each of eight strategies uses 100 training-only TPE trials and mean five-fold AUROC for selection. The out-of-fold Youden threshold is fixed before evaluation. See [the reproduction guide](code/README.md) for cohort construction, model development, performance estimation, tables, and figures.
+Each strategy has an independent 100-trial training-only TPE search selected by mean five-fold AUROC. Eight compatible cleaned v3.2 fits were retained; ten reduced-input strategies completed the matrix. The factorial extension is exploratory. Within-algorithm Full set minus Set 2 comparisons assess the blood-panel increment: external AUROC point differences were negative for all six algorithms, while Brier-error changes depended on algorithm.
 
-Use Python 3.12 and the dependencies in `requirements.txt`. `environment_snapshot.json` records the package versions used for the completed study. The retained `pilot.py`, `prepare_current_ppmi.py`, `six_model_tables.py`, and `manuscript_statistics.py` provide imports needed by the final workflow; their historical main functions are not the final model-development procedure.
+## Code and reproduction
 
-The current four-figure presentation uses `code/main_presentation_figures.py` to export the editable [study workflow SVG](manuscript/figures/figure1_study_design.svg) with Inkscape and to draw internal/external ROC curves from the retained evaluation predictions. All 16 empirical AUROCs are checked against the saved results. This step does not refit models or change thresholds. The calibration plot is Figure 4, and the retained case-mix table is Table 4.
+See the [reproduction guide](code/README.md) for prerequisites, the eight-plus-ten training sequence, performance estimation, tables, figures and validation. `code/factorial_protocol.py` defines the complete registry; `code/bayes100.py` supplies the original eight fits and shared learners; `code/factorial_bayes100.py` trains the ten additional fits. Current postprocessing uses `factorial_statistics.py`, `factorial_tables.py` and `factorial_figures.py`.
 
-## Data access
+Main Figure 2 reports all 18 strategies in both cohorts; Figure 3 reports six within-algorithm blood-panel increments. Supplementary ROC panels contain 36 curves, and calibration covers all 18 strategies. Main Figure 4 retains the three LR calibration comparisons. The editable [18-strategy workflow SVG](manuscript/figures/figure1_factorial_design.svg) is supplied together with its [base SVG](manuscript/figures/figure1_study_design.svg), which the exporter reads. Table formatting preserves the sign of very small nonzero interval bounds.
 
-PPMI exports must be obtained by authorized researchers through the [PPMI data portal](https://www.ppmi-info.org/access-data-specimens/download-data), subject to its access conditions. The external FAHHAUST-PD worksheet is identified in [Wang and Yan's supplementary materials](https://doi.org/10.3389/fnagi.2025.1688653). Place authorized inputs at the paths documented in the reproduction guide. Restricted records, participant identifiers, individual predictions, and fitted model objects are not distributed here.
+Training used Python 3.12.15 and the versions pinned in `requirements.txt`. `environment_snapshot.json` records all 18 training environments and the separate executed postprocessing environment. Historical helper modules are retained as dependencies; their old main functions are not the current analysis route.
 
-This is a code release with the editable workflow SVG. The manuscript-building scripts also require the remaining manuscript sources, figure assets, and aggregate result files from the author workflow; those additional assets are not part of this code repository. Reproducing model estimates from fresh inputs requires running the documented analysis, rather than running the manuscript builder alone.
+## Data and artifact access
+
+PPMI exports must be obtained by authorized researchers through the [PPMI data portal](https://www.ppmi-info.org/access-data-specimens/download-data). The external LY-PD cohort originated in the FAHHAUST-PD worksheet in [Wang and Yan's supplementary materials](https://doi.org/10.3389/fnagi.2025.1688653). Input versions, participant order, outcome labels and the frozen split must match the recorded protocol before a reproduction is comparable.
+
+This is a source-code release. Raw or derived participant records, identifiers, individual predictions, fitted models, private input manifests, and the full author manuscript workspace are not distributed. The scripts require authorized inputs and, for postprocessing-only reproduction, the retained predictions and supporting aggregate receipts described in the guide. A code checkout alone cannot build the manuscript or reproduce private saved estimates. No new model training was performed for this code synchronization.
 
 ## Contact
 

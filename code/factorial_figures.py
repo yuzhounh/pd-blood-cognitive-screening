@@ -1,0 +1,105 @@
+"""B129 vector figures from the 18 frozen prediction strategies."""
+from pathlib import Path
+import json,shutil,subprocess
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib import font_manager
+from sklearn.metrics import roc_curve,auc
+from statsmodels.stats.proportion import proportion_confint
+from common_preprocessing import clean_sheet,sha,write_json
+from factorial_protocol import ROOT,OUT,WORK,STRATEGIES,ALGORITHMS,SETS,paths
+FIG=ROOT/'manuscript/figures';COLORS={'Set 1':'#596775','Set 2':'#285f8f','Full set':'#c7652e'}
+font_manager.findfont(font_manager.FontProperties(family='Arial'),fallback_to_default=False)
+plt.rcParams.update({'font.family':'Arial','font.size':10,'pdf.fonttype':42,'ps.fonttype':42,'axes.spines.top':False,'axes.spines.right':False,'savefig.facecolor':'white'})
+outputs=[];roc_checks=[];all_bins=[]
+def export(fig,stem):
+    for ext in ['pdf','png']:
+        f=FIG/(stem+'.'+ext);fig.savefig(f,dpi=600,bbox_inches='tight',pad_inches=.08);outputs.append(f)
+    fig.savefig(WORK/(stem+'_preview.png'),dpi=150,bbox_inches='tight',pad_inches=.08);plt.close(fig)
+def legend(fig,y=.0):
+    handles=[plt.Line2D([],[],color=COLORS[s],marker='o',lw=1.4,label=s) for s in SETS]
+    fig.legend(handles=handles,loc='lower center',ncol=3,frameon=False,bbox_to_anchor=(.5,y))
+def workflow():
+    source=(FIG/'figure1_study_design.svg').read_text()
+    for a,b in [('Eight prediction strategies','18 prediction strategies'),('Full set: LR, SVM, RF,','Six algorithms: LR, SVM, RF,'),('XGBoost, CatBoost, NN','XGBoost, CatBoost and NN'),('References: LR - Set 1, LR - Set 2','Each with Set 1, Set 2, Full set'),('All eight strategies','All 18 strategies'),('Nested LR calibration plots','Six-algorithm calibration'),('LR versus LR - Set 2','Within each algorithm')]:source=source.replace(a,b)
+    svg=FIG/'figure1_factorial_design.svg';svg.write_text(source,encoding='utf-8')
+    inkscape=shutil.which('inkscape');assert inkscape
+    for ext,args in [('pdf',['--export-text-to-path']),('png',['--export-dpi=300'])]:
+        target=FIG/('figure1_factorial_design.'+ext)
+        subprocess.run([inkscape,str(svg),'--export-area-page',*args,'--export-filename='+str(target)],capture_output=True,check=True);outputs.append(target)
+    outputs.append(svg)
+def auroc(perf):
+    fig,axes=plt.subplots(1,2,figsize=(9.4,5.8));y=np.arange(6)[::-1]
+    for ax,cohort,title in zip(axes,['PPMI_internal','FAHHAUST_external'],['A. Internal PPMI (n=416)','B. External LY-PD (n=197)']):
+        for s,offset in zip(SETS,[.22,0,-.22]):
+            selected=perf.loc[perf.cohort.eq(cohort)&perf.predictor_set.eq(s)].set_index('algorithm').loc[ALGORITHMS]
+            ax.errorbar(selected.AUROC,y+offset,xerr=np.vstack([selected.AUROC-selected.AUROC_low,selected.AUROC_high-selected.AUROC]),fmt='o',ms=4,capsize=2,color=COLORS[s],elinewidth=1)
+        lo=min(.4,float(np.floor(perf.AUROC_low.min()*20)/20));hi=max(.85,float(np.ceil(perf.AUROC_high.max()*20)/20))
+        ax.set(xlim=(lo,hi),ylim=(-.6,5.6),xlabel='AUROC (95% CI)');ax.set_yticks(y,ALGORITHMS);ax.axvline(.5,color='#8b959c',ls='--',lw=.8)
+        ax.set_title(title,loc='left',fontsize=11,weight='bold');ax.grid(axis='x',color='#e6eaed',lw=.6);ax.set_box_aspect(5/4)
+    fig.subplots_adjust(left=.08,right=.99,bottom=.17,top=.9,wspace=.28);legend(fig);export(fig,'figure2_predictor_set_auroc')
+def increments(delta):
+    fig,axes=plt.subplots(2,2,figsize=(9.3,7.8));y=np.arange(6)[::-1]
+    for row,metric in enumerate(['AUROC','Brier']):
+        sub=delta.loc[delta.metric.eq(metric)&delta.primary_comparison];span=max(abs(sub.low).max(),abs(sub.high).max())*1.13
+        for col,cohort in enumerate(['PPMI_internal','FAHHAUST_external']):
+            ax=axes[row,col];d=sub.loc[sub.cohort.eq(cohort)].set_index('algorithm').loc[ALGORITHMS]
+            ax.errorbar(d.difference,y,xerr=np.vstack([d.difference-d.low,d.high-d.difference]),fmt='o',color=COLORS['Full set'],capsize=3,ms=4)
+            ax.axvline(0,color='#7c878f',ls='--',lw=.9);ax.set(xlim=(-span,span),ylim=(-.6,5.6));ax.set_yticks(y,ALGORITHMS);ax.grid(axis='x',color='#e6eaed',lw=.6)
+            ax.set_title(('ABCD'[row*2+col])+'. '+('Internal PPMI' if col==0 else 'External LY-PD'),loc='left',fontsize=11,weight='bold')
+            ax.set_xlabel(('AUROC difference' if row==0 else 'Brier difference')+' (Full set - Set 2)\n'+('Positive favors Full set' if row==0 else 'Negative favors Full set'),fontsize=9.3)
+    fig.subplots_adjust(left=.08,right=.99,bottom=.1,top=.95,hspace=.5,wspace=.28);export(fig,'figure3_blood_panel_increment')
+def age_figure():
+    full,_=clean_sheet(pd.read_csv(ROOT/'data/derived/cog_pm3/ppmi_cog.csv'));ext,_=clean_sheet(pd.read_csv(ROOT/'data/derived/cog_v1/fahhaust.csv'));split=np.load(ROOT/'data/derived/cog_pm3/frozen_split.npz')
+    internal=full.set_index('PATNO').loc[split['internal_id']]
+    tests=pd.read_csv(ROOT/'manuscript/results/manuscript_statistics/figure2_age_tests.csv')
+    arrays=[d.loc[d.COG.eq(c),'age'].dropna().to_numpy() for d in [internal,ext] for c in [0,1]]
+    fig,ax=plt.subplots(figsize=(6.6,5.2));pos=[.8,1.6,3,3.8]
+    b=ax.boxplot(arrays,positions=pos,widths=.5,patch_artist=True,showfliers=False,medianprops=dict(color='#263541',lw=1.5))
+    for patch,color,alpha in zip(b['boxes'],['#285f8f','#285f8f','#c7652e','#c7652e'],[.3,.75,.3,.75]):patch.set(facecolor=color,edgecolor=color,alpha=alpha)
+    for j,test in enumerate(tests.itertuples()):
+        left,right=pos[2*j:2*j+2];height=94
+        ax.plot([left,left,right,right],[height-1,height,height,height-1],color='#263541',lw=1)
+        ax.text((left+right)/2,height+1,'P < 0.001' if test.p_holm<.001 else f'P = {test.p_holm:.3f}',ha='center')
+        gap=arrays[2*j+1].mean()-arrays[2*j].mean();ax.text((left+right)/2,103,f'Mean gap {gap:.2f} years',ha='center')
+    ax.set(xlim=(.2,4.4),ylim=(30,108),ylabel='Age (years)');ax.set_xticks(pos,['COG-negative','COG-positive']*2,fontsize=9)
+    ax.text(1.2,-.14,'Internal PPMI',transform=ax.get_xaxis_transform(),ha='center');ax.text(3.4,-.14,'External LY-PD',transform=ax.get_xaxis_transform(),ha='center')
+    ax.grid(axis='y',color='#e6eaed',lw=.6);fig.subplots_adjust(bottom=.2);export(fig,'figure_s1_age_case_mix')
+def roc_panels(packets,perf):
+    for cohort,yk,pk,stem,label in [('PPMI_internal','yi','pi','figure_s2_internal_roc','Internal PPMI'),('FAHHAUST_external','ye','p','figure_s3_external_roc','External LY-PD')]:
+        fig,axes=plt.subplots(3,2,figsize=(8,9.2))
+        for ax,algorithm in zip(axes.flat,ALGORITHMS):
+            for spec in [s for s in STRATEGIES if s['algorithm']==algorithm]:
+                a=packets[spec['strategy_id']];fpr,tpr,_=roc_curve(a[yk],a[pk]);value=auc(fpr,tpr)
+                target=perf.loc[perf.cohort.eq(cohort)&perf.strategy_id.eq(spec['strategy_id'])].iloc[0].AUROC
+                assert abs(value-target)<1e-12;roc_checks.append(dict(cohort=cohort,strategy_id=spec['strategy_id'],AUROC=float(value)))
+                ax.plot(fpr,tpr,color=COLORS[spec['predictor_set']],lw=1.25,label=f'{spec["predictor_set"]}: {value:.3f}')
+            ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8);ax.set(xlim=(0,1),ylim=(0,1),xlabel='1 - specificity',ylabel='Sensitivity');ax.set_title(algorithm,loc='left',weight='bold');ax.legend(frameon=False,fontsize=8,loc='lower right');ax.grid(color='#e6eaed',lw=.5)
+        fig.suptitle(label,fontsize=12,weight='bold');fig.subplots_adjust(left=.09,right=.98,top=.94,bottom=.06,hspace=.42,wspace=.28);export(fig,stem)
+def calibration_panels(packets):
+    for cohort,yk,pk,stem in [('PPMI_internal','yi','pi','figure_s4_internal_calibration'),('FAHHAUST_external','ye','p','figure_s5_external_calibration')]:
+        fig,axes=plt.subplots(3,2,figsize=(8.3,9.4))
+        for ax,algorithm in zip(axes.flat,ALGORITHMS[1:]):
+            ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8)
+            for spec in [s for s in STRATEGIES if s['algorithm']==algorithm]:
+                a=packets[spec['strategy_id']];p,y=a[pk],a[yk];edges=np.unique(np.quantile(p,np.linspace(0,1,6)));group=np.digitize(p,edges[1:-1],right=True);points=[]
+                for g in np.unique(group):
+                    mask=group==g;n=int(mask.sum());k=int(y[mask].sum());lo,hi=proportion_confint(k,n,alpha=.05,method='wilson');mean=float(p[mask].mean());fraction=k/n
+                    points.append([mean,fraction,lo,hi]);all_bins.append(dict(cohort=cohort,strategy_id=spec['strategy_id'],bin=int(g),n=n,positive=k,mean_probability=mean,observed_fraction=fraction,low=float(lo),high=float(hi)))
+                v=np.array(points);ax.errorbar(v[:,0],v[:,1],yerr=np.vstack([v[:,1]-v[:,2],v[:,3]-v[:,1]]),fmt='o-',ms=3.5,lw=1,capsize=2,color=COLORS[spec['predictor_set']])
+            ax.set(xlim=(0,1),ylim=(0,1),xlabel='Mean predicted probability',ylabel='Observed fraction');ax.set_title(algorithm,loc='left',weight='bold');ax.grid(color='#e6eaed',lw=.5)
+        axes.flat[-1].set_visible(False);fig.suptitle('Internal PPMI' if cohort=='PPMI_internal' else 'External LY-PD',fontsize=12,weight='bold');fig.subplots_adjust(left=.09,right=.98,top=.94,bottom=.09,hspace=.42,wspace=.3);legend(fig);export(fig,stem)
+def main():
+    WORK.mkdir(exist_ok=True,parents=True)
+    perf=pd.read_csv(OUT/'performance.csv');delta=pd.read_csv(OUT/'paired_differences.csv');packets={}
+    for spec in STRATEGIES:
+        with np.load(paths(spec['strategy_id'])[1]) as z:packets[spec['strategy_id']]={k:z[k].copy() for k in ['yi','pi','ye','p']}
+    workflow();auroc(perf);increments(delta);age_figure();roc_panels(packets,perf);calibration_panels(packets)
+    pd.DataFrame(all_bins).to_csv(OUT/'supplementary_calibration_bins.csv',index=False)
+    # The unchanged LR calibration remains the main Figure 4 from the reused predictions.
+    manifest=dict(status='generated',font_family='Arial',predictive_models_refitted=0,ROC_checks=roc_checks,supplementary_ROC_curves=36,output_sha256={str(f.relative_to(ROOT)):sha(f) for f in outputs},input_sha256={str((OUT/n).relative_to(ROOT)):sha(OUT/n) for n in ['performance.csv','paired_differences.csv']},main_LR_calibration_reused=True)
+    write_json(OUT/'figure_manifest.json',manifest);print(json.dumps(dict(status='generated',main_figures=[1,2,3],main_figure4_reused=True,supplementary_figures=5,ROC_curves=36)))
+if __name__=='__main__':main()

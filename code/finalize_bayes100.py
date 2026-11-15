@@ -29,17 +29,15 @@ def measures(y,p,cut):
 
 
 def calibration(y,p):
-    z=logit(np.clip(p,1e-6,1-1e-6));design=np.c_[np.ones(len(z)),z]
-    offset=minimize_scalar(lambda a:np.mean(np.logaddexp(0,z+a)-y*(z+a)),bounds=(-20,20),method='bounded')
-    base=dict(mean_probability=float(p.mean()),observed_fraction=float(y.mean()),calibration_intercept_offset=float(offset.x))
-    if np.linalg.matrix_rank(design)<2:
-        return dict(**base,calibration_fit_success=False,calibration_intercept=None,calibration_slope=None,calibration_note='Constant predicted log odds')
-    fit=minimize(lambda b:np.mean(np.logaddexp(0,design@b)-y*(design@b)),[0.,1.],
-                 jac=lambda b:design.T@(expit(design@b)-y)/len(y),method='BFGS')
-    return dict(**base,calibration_fit_success=bool(fit.success),
-                calibration_intercept=float(fit.x[0]) if fit.success else None,
-                calibration_slope=float(fit.x[1]) if fit.success else None,
-                calibration_note='' if fit.success else str(fit.message))
+    from calibration_likelihood import fit_calibration
+    z=logit(np.clip(p,1e-6,1-1e-6))
+    base=dict(mean_probability=float(p.mean()),observed_fraction=float(y.mean()))
+    if float(z.std()) == 0:
+        raise ValueError('Calibration slope is not identifiable for constant log odds')
+    offset,slope,intercept=fit_calibration(y,z,np.ones(len(y)),float(z.mean()),float(z.std()))
+    return dict(**base,calibration_intercept_offset=offset,calibration_fit_success=True,
+                calibration_intercept=intercept,calibration_slope=slope,
+                calibration_note='Centered/scaled unpenalized binomial likelihood')
 
 
 def bootstrap(y,p,indices):
@@ -112,4 +110,11 @@ def main():
 
 
 if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--results-dir',type=Path)
+    parser.add_argument('--prediction-dir',type=Path)
+    args=parser.parse_args()
+    if args.results_dir: OUT=args.results_dir.resolve()
+    if args.prediction_dir: PRIVATE=args.prediction_dir.resolve()
     with threadpool_limits(limits=1):main()

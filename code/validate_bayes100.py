@@ -12,13 +12,14 @@ from common_preprocessing import sha,write_json,youden
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'manuscript/results/bayes100'
 PRIVATE=ROOT/'data/derived/bayes100'
+INPUT=ROOT/'data/derived/bayes100_input'
 NAMES=['Age_LR','Basic_LR','LR','SVM','RF','XGBoost','CatBoost','NN']
 
 
 def main():
     split=np.load(ROOT/'data/derived/cog_pm3/frozen_split.npz')
     external=pd.read_csv(ROOT/'data/derived/cog_v1/fahhaust.csv')
-    manifest=json.loads((ROOT/'data/derived/bayes100_input/input_manifest.json').read_text())
+    manifest=json.loads((INPUT/'input_manifest.json').read_text())
     metrics=pd.read_csv(OUT/'metrics.csv');absolute=pd.read_csv(OUT/'absolute_intervals.csv')
     paired=pd.read_csv(OUT/'paired_lr.csv');cal=pd.read_csv(OUT/'calibration.csv')
     assert (len(metrics),len(absolute),len(paired),len(cal))==(32,12,12,16)
@@ -31,6 +32,7 @@ def main():
         assert r['n_features']==(1 if name=='Age_LR' else 5 if name=='Basic_LR' else 21)
         assert r['signature_inputs']['code']==sha(ROOT/'code/bayes100.py')
         assert r['signature_inputs']['preprocessing']==sha(ROOT/'code/common_preprocessing.py')
+        assert r['signature_inputs']['body_rules']==sha(ROOT/'code/body_rules.py')
         assert r['signature_inputs']['inputs']==manifest
         signature=hashlib.sha256(json.dumps(r['signature_inputs'],sort_keys=True).encode()).hexdigest()
         assert signature==r['signature']
@@ -95,4 +97,14 @@ def main():
     print(json.dumps(result,indent=2),flush=True)
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--results-dir',type=Path)
+    parser.add_argument('--prediction-dir',type=Path)
+    parser.add_argument('--input-dir',type=Path)
+    args=parser.parse_args()
+    if args.results_dir: OUT=args.results_dir.resolve()
+    if args.prediction_dir: PRIVATE=args.prediction_dir.resolve()
+    if args.input_dir: INPUT=args.input_dir.resolve()
+    main()

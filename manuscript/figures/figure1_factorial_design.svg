@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="180mm" height="114.5mm" viewBox="0 0 1800 1145" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerUnits="userSpaceOnUse" viewBox="0 0 14 12" refX="12" refY="6" markerWidth="18" markerHeight="16" orient="auto">
+      <path d="M0 0 L14 6 L0 12 L4 6 Z" fill="#596775"/>
+    </marker>
+  </defs>
+  <rect width="1800" height="1145" fill="#ffffff"/>
+  <!-- The numbered stages follow the E-series workflow style. -->
+  <rect x="20" y="20" width="560" height="735" rx="16" fill="#eef3f9" stroke="#3b6ea5" stroke-width="2.6"/>
+  <path d="M20 36 a16 16 0 0 1 16 -16 h528 a16 16 0 0 1 16 16 v59 H20 Z" fill="#3b6ea5"/>
+  <circle cx="57" cy="57" r="22" fill="#ffffff"/>
+  <text x="57" y="68" font-size="31" font-weight="bold" text-anchor="middle" fill="#3b6ea5">1</text>
+  <text x="92" y="67" font-size="30" font-weight="bold" fill="#ffffff">Cohorts and cognitive status</text>
+  <g transform="translate(53,125)" stroke="#3b6ea5" stroke-width="3" fill="#d2e0ef">
+    <path d="M0 13 v47 a34 13 0 0 0 68 0 V13"/>
+    <ellipse cx="34" cy="13" rx="34" ry="13"/>
+    <path d="M0 36 a34 13 0 0 0 68 0" fill="none"/>
+  </g>
+  <text x="144" y="150" font-size="31" font-weight="bold" fill="#263744">PPMI cohort</text>
+  <text x="144" y="190" font-size="29" fill="#263744">2,263 participants with PD</text>
+  <rect x="50" y="215" width="500" height="135" rx="10" fill="#ffffff" stroke="#b5c8dc" stroke-width="2"/>
+  <text x="75" y="253" font-size="30" font-weight="bold" fill="#263744">Eligible matched sample: 1,385</text>
+  <text x="75" y="293" font-size="29" fill="#263744">COG+: 679  |  COG−: 706</text>
+  <text x="75" y="332" font-size="28" fill="#596775">878 without eligible matches</text>
+  <rect x="50" y="375" width="500" height="139" rx="10" fill="#fbf2ec" stroke="#c7652e" stroke-width="2"/>
+  <text x="75" y="415" font-size="31" font-weight="bold" fill="#a75025">Published LY-PD</text>
+  <text x="75" y="455" font-size="29" fill="#263744">197 participants with PD</text>
+  <text x="75" y="495" font-size="29" fill="#263744">COG+: 122  |  COG−: 75</text>
+  <text x="50" y="563" font-size="30" font-weight="bold" fill="#263744">Concurrent COG outcome</text>
+  <text x="50" y="607" font-size="29" fill="#263744">MoCA &lt;26 OR cognitive item ≥1</text>
+  <text x="50" y="651" font-size="29" fill="#263744">Both components observed</text>
+  <text x="50" y="704" font-size="28" fill="#596775">One observation per participant</text>
+
+  <rect x="620" y="20" width="560" height="735" rx="16" fill="#eef7f5" stroke="#2a9d8f" stroke-width="2.6"/>
+  <path d="M620 36 a16 16 0 0 1 16 -16 h528 a16 16 0 0 1 16 16 v59 H620 Z" fill="#2a9d8f"/>
+  <circle cx="657" cy="57" r="22" fill="#ffffff"/>
+  <text x="657" y="68" font-size="31" font-weight="bold" text-anchor="middle" fill="#2a9d8f">2</text>
+  <text x="692" y="67" font-size="31" font-weight="bold" fill="#ffffff">Split and predictor sets</text>
+  <g id="split-icon" transform="translate(652,127)" fill="none" stroke="#2a9d8f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="18" y="0" width="20" height="14" rx="3"/>
+    <path d="M28 14 V26 M8 37 V26 H48 V37"/>
+    <rect x="0" y="37" width="17" height="14" rx="3"/>
+    <rect x="40" y="37" width="17" height="14" rx="3"/>
+  </g>
+  <text x="731" y="150" font-size="31" font-weight="bold" fill="#263744">PPMI split</text>
+  <text x="731" y="180" font-size="28" fill="#263744">Outcome-stratified 70:30</text>
+  <rect x="650" y="200" width="235" height="90" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <rect x="915" y="200" width="235" height="90" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="768" y="236" font-size="29" text-anchor="middle" fill="#263744">Training</text>
+  <text x="768" y="274" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 969</text>
+  <text x="1033" y="236" font-size="29" text-anchor="middle" fill="#263744">Internal test</text>
+  <text x="1033" y="274" font-size="31" font-weight="bold" text-anchor="middle" fill="#263744">n = 416</text>
+  <rect x="650" y="315" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="675" y="354" font-size="30" font-weight="bold" fill="#263744">Set 1: 1 predictor</text>
+  <text x="675" y="391" font-size="28" fill="#596775">Age</text>
+  <rect x="650" y="435" width="500" height="100" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="675" y="474" font-size="30" font-weight="bold" fill="#263744">Set 2: 5 predictors</text>
+  <text x="675" y="511" font-size="28" fill="#596775">Age, sex, height, weight, BMI</text>
+  <rect x="650" y="555" width="500" height="182" rx="9" fill="#ffffff" stroke="#9dcac1" stroke-width="2"/>
+  <text x="675" y="594" font-size="30" font-weight="bold" fill="#263744">Full set: 21 predictors</text>
+  <text x="675" y="633" font-size="28" fill="#596775">Age, sex, height, weight, BMI</text>
+  <text x="675" y="669" font-size="28" fill="#596775">+ 16 blood markers, e.g.,</text>
+  <text x="675" y="705" font-size="28" fill="#596775">Neutrophils, NLR, hemoglobin, ...</text>
+
+  <rect x="1220" y="20" width="560" height="735" rx="16" fill="#f4eff8" stroke="#80649e" stroke-width="2.6"/>
+  <path d="M1220 36 a16 16 0 0 1 16 -16 h528 a16 16 0 0 1 16 16 v59 H1220 Z" fill="#80649e"/>
+  <circle cx="1257" cy="57" r="22" fill="#ffffff"/>
+  <text x="1257" y="68" font-size="31" font-weight="bold" text-anchor="middle" fill="#80649e">3</text>
+  <text x="1292" y="67" font-size="30" font-weight="bold" fill="#ffffff">Training-only development</text>
+  <g id="training-icon" transform="translate(1252,112)" fill="none" stroke="#80649e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="6" width="38" height="38" rx="7"/>
+    <path d="M18 0 V6 M28 0 V6 M38 0 V6 M18 44 V50 M28 44 V50 M38 44 V50 M3 15 H9 M3 25 H9 M3 35 H9 M47 15 H53 M47 25 H53 M47 35 H53"/>
+    <circle cx="28" cy="25" r="8"/>
+  </g>
+  <text x="1320" y="150" font-size="31" font-weight="bold" fill="#263744">18 prediction strategies</text>
+  <text x="1250" y="206" font-size="28" fill="#596775">Six algorithms: LR, SVM, RF,</text>
+  <text x="1250" y="246" font-size="28" fill="#596775">XGBoost, CatBoost and NN</text>
+  <text x="1250" y="286" font-size="28" fill="#596775">Each with Set 1, Set 2, Full set</text>
+  <line x1="1250" y1="310" x2="1750" y2="310" stroke="#c7b9d8" stroke-width="2"/>
+  <text x="1250" y="349" font-size="30" font-weight="bold" fill="#263744">Within model-fitting subsets</text>
+  <text x="1250" y="390" font-size="29" fill="#263744">Capping, imputation, scaling</text>
+  <text x="1250" y="430" font-size="29" fill="#263744">100 TPE trials per strategy</text>
+  <text x="1250" y="470" font-size="29" fill="#263744">Mean five-fold AUROC selection</text>
+  <text x="1250" y="510" font-size="29" fill="#263744">Training-only early stopping</text>
+  <path d="M1500 535 V567" stroke="#596775" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <rect x="1250" y="579" width="500" height="158" rx="10" fill="#ffffff" stroke="#c7b9d8" stroke-width="2"/>
+  <text x="1275" y="613" font-size="30" font-weight="bold" fill="#263744">Final model application</text>
+  <text x="1275" y="649" font-size="29" fill="#263744">Refit on all 969 training records</text>
+  <text x="1275" y="685" font-size="29" fill="#263744">Training OOF Youden thresholds</text>
+  <text x="1275" y="721" font-size="29" fill="#263744">Freeze models and preprocessing</text>
+  <path id="stage-1-to-2" d="M585 400 H612" stroke="#596775" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path id="stage-2-to-3" d="M1185 400 H1212" stroke="#596775" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <path d="M1500 760 V792" stroke="#596775" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+  <rect x="20" y="805" width="1760" height="315" rx="16" fill="#f7f8fa" stroke="#596775" stroke-width="2.6"/>
+  <path d="M20 821 a16 16 0 0 1 16 -16 h1728 a16 16 0 0 1 16 16 v59 H20 Z" fill="#596775"/>
+  <circle cx="57" cy="842" r="22" fill="#ffffff"/>
+  <text x="57" y="853" font-size="31" font-weight="bold" text-anchor="middle" fill="#596775">4</text>
+  <g id="evaluation-icon" transform="translate(96,823)" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M0 0 V39 H45 M7 31 L17 24 L27 27 L40 9"/>
+    <circle cx="17" cy="24" r="2"/><circle cx="27" cy="27" r="2"/>
+  </g>
+  <text x="164" y="852" font-size="32" font-weight="bold" fill="#ffffff">Frozen evaluation: internal PPMI (n = 416) and external LY-PD (n = 197)</text>
+  <rect x="50" y="905" width="400" height="190" rx="10" fill="#ffffff" stroke="#bac6d1" stroke-width="2"/>
+  <text x="75" y="944" font-size="30" font-weight="bold" fill="#3b6ea5">Discrimination</text>
+  <text x="75" y="986" font-size="29" fill="#263744">Empirical ROC curves</text>
+  <text x="75" y="1028" font-size="29" fill="#263744">AUROC with 95% intervals</text>
+  <text x="75" y="1070" font-size="29" fill="#596775">All 18 strategies</text>
+  <rect x="483" y="905" width="400" height="190" rx="10" fill="#ffffff" stroke="#bac6d1" stroke-width="2"/>
+  <text x="508" y="944" font-size="30" font-weight="bold" fill="#2a9d8f">Probability accuracy</text>
+  <text x="508" y="986" font-size="29" fill="#263744">Brier score</text>
+  <text x="508" y="1028" font-size="29" fill="#263744">Calibration summaries</text>
+  <text x="508" y="1070" font-size="29" fill="#596775">Six-algorithm calibration</text>
+  <rect x="916" y="905" width="400" height="190" rx="10" fill="#ffffff" stroke="#bac6d1" stroke-width="2"/>
+  <text x="941" y="944" font-size="30" font-weight="bold" fill="#80649e">Operating points</text>
+  <text x="941" y="986" font-size="29" fill="#263744">Accuracy, sensitivity,</text>
+  <text x="941" y="1028" font-size="29" fill="#263744">and specificity</text>
+  <text x="941" y="1070" font-size="29" fill="#596775">Training-derived thresholds</text>
+  <rect x="1349" y="905" width="400" height="190" rx="10" fill="#ffffff" stroke="#bac6d1" stroke-width="2"/>
+  <text x="1374" y="944" font-size="30" font-weight="bold" fill="#a75025">Increment and case mix</text>
+  <text x="1374" y="986" font-size="29" fill="#263744">Within each algorithm</text>
+  <text x="1374" y="1028" font-size="29" fill="#263744">AUROC / Brier differences</text>
+  <text x="1374" y="1070" font-size="29" fill="#596775">Age and cognitive profiles</text>
+</svg>
