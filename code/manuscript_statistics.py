@@ -343,8 +343,9 @@ def write_descriptive_tables(cohorts):
         rows.append([label,*[count(func(d),d) for d in cohorts.values()]])
     save_table('table1','Characteristics of the model-development and evaluation samples',
                ['Characteristic','PPMI training','PPMI internal','LY-PD'],descriptive_display_rows(rows),
-               r'p{0.34\textwidth}p{0.20\textwidth}p{0.20\textwidth}p{0.20\textwidth}',
-               'Values are n (%), mean (SD) for age and MoCA, and median [Q1, Q3] for anthropometry and blood predictors. '
+               # Widths follow padded, unwrapped 9 pt cell maxima; preserve full page width.
+               r'p{0.292945\textwidth}p{0.235685\textwidth}p{0.235685\textwidth}p{0.235685\textwidth}',
+               'Values are n or n (%), mean (SD) for age and MoCA, and median [Q1, Q3] for anthropometry and blood predictors. '
                'Summaries use observed values before imputation or capping; percentages use the full sample denominator. '
                'The three positive-component rows partition COG-positive participants. Abbreviations: BMI, body mass index; '
                'MoCA, Montreal Cognitive Assessment; NLR, neutrophil-to-lymphocyte ratio; RBC, red blood cell count; WBC, white blood cell count; SD, standard deviation; Q1, first quartile; Q3, third quartile; PPMI, Parkinson\'s Progression Markers Initiative; LY-PD, Luoyang PD cohort; COG, composite cognitive-screening outcome.',True)

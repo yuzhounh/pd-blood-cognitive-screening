@@ -16,6 +16,8 @@ Main Figure 2 reports all 18 strategies in both cohorts; Figure 3 reports six wi
 
 Training used Python 3.12.15 and the versions pinned in `requirements.txt`. `environment_snapshot.json` records all 18 training environments and the separate executed postprocessing environment. Historical helper modules are retained as dependencies; their old main functions are not the current analysis route.
 
+The current presentation adds A–F algorithm labels to supplementary ROC panels and A–E labels to supplementary calibration panels, retaining the algorithm names and matching internal/external order. Content-based table widths, two-line unit/CI headers, unbreakable dense body cells, compact S1 and a one-page S2B layout are documented in the reproduction guide. S2B CV AUROC and threshold displays use three decimal places; saved full-precision thresholds drive the reported classifications. S8 preserves the source publication's two-decimal reported AUROCs. Use the documented presentation-only route with retained results to refresh displays without retraining or re-estimating bootstrap intervals.
+
 ## Data and artifact access
 
 PPMI exports must be obtained by authorized researchers through the [PPMI data portal](https://www.ppmi-info.org/access-data-specimens/download-data). The external LY-PD cohort originated in the FAHHAUST-PD worksheet in [Wang and Yan's supplementary materials](https://doi.org/10.3389/fnagi.2025.1688653). Input versions, participant order, outcome labels and the frozen split must match the recorded protocol before a reproduction is comparable.

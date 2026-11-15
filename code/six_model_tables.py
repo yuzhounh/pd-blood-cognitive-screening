@@ -10,9 +10,25 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'manuscript/results/six_model'
 TABLES=ROOT/'manuscript/tables'
 NAMES=['LR','SVM','RF','XGBoost','CatBoost','NN']
+RECONSTRUCTION_SPEC=r'P{0.2100475421\textwidth}P{0.1943274514\textwidth}P{0.4000222183\textwidth}P{0.1956027882\textwidth}'
 
 
-def table(name,title,headers,rows,spec,notes,long=False,group_first=False,full_width=False):
+def header_tex(label,break_mode=None,header_lines=None):
+    """Keep units/CI together on a second header line; leave data untouched."""
+    parts=(header_lines or {}).get(label)
+    if parts is None and break_mode:
+        suffix={'ci':'(95% CI)','percent_ci':'% (95% CI)'}[break_mode]
+        if label.endswith(suffix):
+            prefix=label[:-len(suffix)].rstrip(' ,')
+            parts=(prefix,suffix)
+    value=(r'\newline'.join(r'\mbox{'+tex(part)+'}' for part in parts)
+           if parts else tex(label))
+    return r'\ManuscriptHeader{'+value+'}'
+
+
+def table(name,title,headers,rows,spec,notes,long=False,group_first=False,full_width=False,
+          font_size=None,tabcolsep=None,nowrap_body=False,width_fraction=None,
+          header_break=None,header_lines=None):
     title,notes=display_text(title),display_text(notes)
     rows=[[display_text(value) for value in row] for row in rows]
     spec=fit_paragraph_columns(spec)
@@ -25,23 +41,53 @@ def table(name,title,headers,rows,spec,notes,long=False,group_first=False,full_w
     md += ['| '+' | '.join(map(str,row))+' |' for row in display_rows]
     md += ['',notes,'']
     (TABLES/(name+'.md')).write_text('\n'.join(md),encoding='utf-8')
-    header=' & '.join(r'\ManuscriptHeader{'+tex(x)+'}' for x in headers)+r' \\'
+    header=' & '.join(header_tex(x,header_break,header_lines) for x in headers)+r' \\'
     if long:
         lines=[r'\par\begingroup\ManuscriptTableStyle',r'\begin{longtable}{'+spec+'}',
                r'\caption{\textbf{'+tex(title).rstrip('.')+r'.}}\label{tab:'+name+r'}\\',r'\toprule',header,
                r'\midrule\endfirsthead',r'\multicolumn{'+str(len(headers))+r'}{l}{\tablename\ \thetable\ continued}\\',
                r'\toprule',header,r'\midrule\endhead',r'\bottomrule\endfoot']
+        local_style=[]
+        if font_size is not None:
+            local_style.append(r'\ManuscriptTableSize{'+str(font_size[0])+'}{'+str(font_size[1])+'}')
+        if tabcolsep is not None:
+            local_style.append(r'\setlength{\tabcolsep}{'+str(tabcolsep)+'pt}')
+        lines[1:1]=local_style
     else:
         tabular='tabular*' if full_width else 'tabular'
         opening=r'\begin{'+tabular+'}'+(r'{\textwidth}' if full_width else '')+'{'+spec+'}'
         lines=[r'\begin{table}[!htbp]\centering\ManuscriptTableStyle',
                r'\caption{\textbf{'+tex(title).rstrip('.')+r'.}}\label{tab:'+name+'}',opening,r'\toprule',header,r'\midrule']
+    if width_fraction is not None:
+        assert not long and 0<width_fraction<=1
+        lines[1:1]=[r'\begin{minipage}{'+str(width_fraction)+r'\textwidth}\centering']
     for i,row in enumerate(display_rows):
         if group_first and i and rows[i][0]!=rows[i-1][0]: lines.append(r'\addlinespace[0.6em]')
-        lines.append(' & '.join(tex(x) for x in row)+r' \\')
+        cells=[tex(x) for x in row]
+        if nowrap_body:
+            cells=[r'\mbox{'+cell+'}' for cell in cells]
+        lines.append(' & '.join(cells)+r' \\')
     if long: lines += [r'\end{longtable}',r'\noindent\ManuscriptNoteStyle '+tex(notes),r'\par\endgroup']
     else: lines += [r'\bottomrule\end{'+tabular+'}',r'\par\medskip\begin{minipage}{\textwidth}\ManuscriptNoteStyle '+tex(notes),r'\end{minipage}\end{table}']
+    if width_fraction is not None:
+        lines[-1]=lines[-1].replace(r'\end{minipage}\end{table}',r'\end{minipage}\par\end{minipage}\end{table}')
     (TABLES/(name+'.tex')).write_text('\n'.join(lines)+'\n',encoding='utf-8')
+
+
+def write_reconstruction_table():
+    """Render S8 from retained ancillary metrics without historical main outputs."""
+    repro=pd.read_csv(ROOT/'manuscript/results/paper_reproduction/metrics.csv').query("version=='tuned'")
+    rows=[]
+    for name in ['RF','XGBoost','CatBoost','NN']:
+        a=repro.loc[repro.model.eq(name)&repro.flow.eq('split_first')].iloc[0]
+        b=repro.loc[repro.model.eq(name)&repro.flow.eq('smote_first')].iloc[0]
+        rows.append([name,f'{a.paper_AUROC:.2f}',interval(a.AUROC,a.AUROC_low,a.AUROC_high),f'{b.AUROC:.3f}'])
+    table('table_s_reconstruction','Ancillary reconstruction using the original published PPMI table',
+          ['Algorithm','Reported AUROC','Workflow A AUROC (95% CI)','Workflow B AUROC'],rows,
+          RECONSTRUCTION_SPEC,
+          'This ancillary analysis is separate from primary model development. A: split observed participants before training-only SMOTE, development n=1,023, observed test n=256. '
+          'B: full-table SMOTE before splitting, development n=1,260, test n=316 including 63 synthetic records. '
+          'B is a non-independent diagnostic scenario. Its score is not assigned an independent-test confidence interval; the workflows do not use identical evaluation participants. \\textbf{Abbreviations:} RF, random forest; NN, neural network; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; SMOTE, synthetic minority oversampling technique.',False,header_lines={'Workflow A AUROC (95% CI)':('Workflow A','AUROC (95% CI)')})
 
 
 def main():
@@ -126,18 +172,7 @@ def main():
           ['Sample','Strategy','AUROC (95% CI)','Brier'],rows,
           r'P{0.28\textwidth}P{0.16\textwidth}P{0.32\textwidth}P{0.18\textwidth}',
           'The six full-panel algorithms and two logistic references use the same training and evaluation participants.',True)
-    repro=pd.read_csv(ROOT/'manuscript/results/paper_reproduction/metrics.csv').query("version=='tuned'")
-    rows=[]
-    for name in ['RF','XGBoost','CatBoost','NN']:
-        a=repro.loc[repro.model.eq(name)&repro.flow.eq('split_first')].iloc[0]
-        b=repro.loc[repro.model.eq(name)&repro.flow.eq('smote_first')].iloc[0]
-        rows.append([name,f'{a.paper_AUROC:.2f}',interval(a.AUROC,a.AUROC_low,a.AUROC_high),f'{b.AUROC:.3f}'])
-    table('table_s_reconstruction','Ancillary reconstruction using the original published PPMI table',
-          ['Algorithm','Reported AUROC','Workflow A AUROC (95% CI)','Workflow B AUROC'],rows,
-          r'P{0.16\textwidth}P{0.16\textwidth}P{0.37\textwidth}P{0.21\textwidth}',
-          'This ancillary analysis is separate from primary model development. A: split observed participants before training-only SMOTE, development n=1,023, observed test n=256. '
-          'B: full-table SMOTE before splitting, development n=1,260, test n=316 including 63 synthetic records. '
-          'B is a non-independent diagnostic scenario. Its score is not assigned an independent-test confidence interval; the workflows do not use identical evaluation participants. \\textbf{Abbreviations:} RF, random forest; NN, neural network; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; SMOTE, synthetic minority oversampling technique.',False)
+    write_reconstruction_table()
     combined=TABLES/'table3_combined.tex'
     combined.write_text(combined.read_text(encoding='utf-8').replace(r'\begin{table}[p]',r'\begin{table}[!htbp]'),encoding='utf-8')
     for name in ['table1','table_s_missing']:

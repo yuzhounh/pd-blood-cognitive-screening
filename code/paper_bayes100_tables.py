@@ -73,10 +73,10 @@ def write_missing_table():
     frame.iloc[:,0]=frame.iloc[:,0].replace({'age':'Age','sex':'Sex','height':'Height','weight':'Weight'})
     display.table('table_s_missing','Missing predictor values before training-derived imputation',
                   frame.columns.tolist(),frame.values.tolist(),
-                  r'P{0.43\textwidth}P{0.19\textwidth}P{0.19\textwidth}P{0.19\textwidth}',
+                  r'P{0.2880504511\textwidth}P{0.2828726787\textwidth}P{0.2801764718\textwidth}P{0.1489003985\textwidth}',
                   'Counts include missing values and invalid observations set to missing by uniform validity rules. '
                   'No outcome component was imputed. '+r'\textbf{Abbreviations:} BMI, body mass index; NLR, neutrophil-to-lymphocyte ratio.',
-                  long=False)
+                  long=False,width_fraction=.75)
 
 
 def panel(headers,rows):
@@ -113,7 +113,7 @@ def write_case_mix_table():
     assert len(frame)==6
     display.table('table4','Age and cognitive-component distributions by outcome',
                   frame.columns.tolist(),frame.values.tolist(),
-                  r'P{0.12\textwidth}P{0.07\textwidth}P{0.07\textwidth}P{0.23\textwidth}P{0.18\textwidth}P{0.23\textwidth}',
+                  r'P{0.134\textwidth}P{0.100\textwidth}P{0.069\textwidth}P{0.261\textwidth}P{0.215\textwidth}P{0.221\textwidth}',
                   'Both positive means MoCA <26 and cognitive-item score >=1. Percentages in this column use the number of COG-positive participants as the denominator. '
                   'Age summaries use available values before imputation or capping; MoCA was complete. \\textbf{Abbreviations:} COG, composite cognitive-screening outcome; MoCA, Montreal Cognitive Assessment; SD, standard deviation.',long=False)
 

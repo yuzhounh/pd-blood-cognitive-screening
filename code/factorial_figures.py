@@ -43,14 +43,14 @@ def auroc(perf):
     fig.subplots_adjust(left=.08,right=.99,bottom=.17,top=.9,wspace=.28);legend(fig);export(fig,'figure2_predictor_set_auroc')
 def increments(delta):
     fig,axes=plt.subplots(2,2,figsize=(9.3,7.8));y=np.arange(6)[::-1]
-    for row,metric in enumerate(['AUROC','Brier']):
+    for col,metric in enumerate(['AUROC','Brier']):
         sub=delta.loc[delta.metric.eq(metric)&delta.primary_comparison];span=max(abs(sub.low).max(),abs(sub.high).max())*1.13
-        for col,cohort in enumerate(['PPMI_internal','FAHHAUST_external']):
+        for row,cohort in enumerate(['PPMI_internal','FAHHAUST_external']):
             ax=axes[row,col];d=sub.loc[sub.cohort.eq(cohort)].set_index('algorithm').loc[ALGORITHMS]
             ax.errorbar(d.difference,y,xerr=np.vstack([d.difference-d.low,d.high-d.difference]),fmt='o',color=COLORS['Full set'],capsize=3,ms=4)
             ax.axvline(0,color='#7c878f',ls='--',lw=.9);ax.set(xlim=(-span,span),ylim=(-.6,5.6));ax.set_yticks(y,ALGORITHMS);ax.grid(axis='x',color='#e6eaed',lw=.6)
-            ax.set_title(('ABCD'[row*2+col])+'. '+('Internal PPMI' if col==0 else 'External LY-PD'),loc='left',fontsize=11,weight='bold')
-            ax.set_xlabel(('AUROC difference' if row==0 else 'Brier difference')+' (Full set - Basic set)\n'+('Positive favors Full set' if row==0 else 'Negative favors Full set'),fontsize=9.3)
+            ax.set_title(('ABCD'[row*2+col])+'. '+('Internal PPMI' if row==0 else 'External LY-PD'),loc='left',fontsize=11,weight='bold')
+            ax.set_xlabel(('AUROC difference' if metric=='AUROC' else 'Brier difference')+' (Full set - Basic set)\n'+('Positive favors Full set' if metric=='AUROC' else 'Negative favors Full set'),fontsize=9.3)
     fig.subplots_adjust(left=.08,right=.99,bottom=.1,top=.95,hspace=.5,wspace=.28);export(fig,'figure3_blood_panel_increment')
 def age_figure():
     full,_=clean_sheet(pd.read_csv(ROOT/'data/derived/cog_pm3/ppmi_cog.csv'));ext,_=clean_sheet(pd.read_csv(ROOT/'data/derived/cog_v1/fahhaust.csv'));split=np.load(ROOT/'data/derived/cog_pm3/frozen_split.npz')
@@ -71,18 +71,18 @@ def age_figure():
 def roc_panels(packets,perf):
     for cohort,yk,pk,stem,label in [('PPMI_internal','yi','pi','figure_s2_internal_roc','Internal PPMI'),('FAHHAUST_external','ye','p','figure_s3_external_roc','External LY-PD')]:
         fig,axes=plt.subplots(3,2,figsize=(8,9.2))
-        for ax,algorithm in zip(axes.flat,ALGORITHMS):
+        for panel,(ax,algorithm) in enumerate(zip(axes.flat,ALGORITHMS)):
             for spec in [s for s in STRATEGIES if s['algorithm']==algorithm]:
                 a=packets[spec['strategy_id']];fpr,tpr,_=roc_curve(a[yk],a[pk]);value=auc(fpr,tpr)
                 target=perf.loc[perf.cohort.eq(cohort)&perf.strategy_id.eq(spec['strategy_id'])].iloc[0].AUROC
                 assert abs(value-target)<1e-12;roc_checks.append(dict(cohort=cohort,strategy_id=spec['strategy_id'],AUROC=float(value)))
                 ax.plot(fpr,tpr,color=COLORS[spec['predictor_set']],lw=1.25,label=f'{display_text(spec["predictor_set"])}: {value:.3f}')
-            ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8);ax.set(xlim=(0,1),ylim=(0,1),xlabel='1 - specificity',ylabel='Sensitivity');ax.set_title(algorithm,loc='left',weight='bold');ax.legend(frameon=False,fontsize=8,loc='lower right');ax.grid(color='#e6eaed',lw=.5)
+            ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8);ax.set(xlim=(0,1),ylim=(0,1),xlabel='1 - specificity',ylabel='Sensitivity');ax.set_title(f'{chr(65+panel)}. {algorithm}',loc='left',weight='bold');ax.legend(frameon=False,fontsize=8,loc='lower right');ax.grid(color='#e6eaed',lw=.5)
         fig.suptitle(label,fontsize=12,weight='bold');fig.subplots_adjust(left=.09,right=.98,top=.94,bottom=.06,hspace=.42,wspace=.28);export(fig,stem)
 def calibration_panels(packets, retained_bins=None):
     for cohort,yk,pk,stem in [('PPMI_internal','yi','pi','figure_s4_internal_calibration'),('FAHHAUST_external','ye','p','figure_s5_external_calibration')]:
         fig,axes=plt.subplots(3,2,figsize=(8.3,9.4))
-        for ax,algorithm in zip(axes.flat,ALGORITHMS[1:]):
+        for panel,(ax,algorithm) in enumerate(zip(axes.flat,ALGORITHMS[1:])):
             ax.plot([0,1],[0,1],color='#a7b0b8',ls='--',lw=.8)
             for spec in [s for s in STRATEGIES if s['algorithm']==algorithm]:
                 if retained_bins is not None:
@@ -95,7 +95,7 @@ def calibration_panels(packets, retained_bins=None):
                         mask=group==g;n=int(mask.sum());k=int(y[mask].sum());lo,hi=proportion_confint(k,n,alpha=.05,method='wilson');mean=float(p[mask].mean());fraction=k/n
                         points.append([mean,fraction,lo,hi]);all_bins.append(dict(cohort=cohort,strategy_id=spec['strategy_id'],bin=int(g),n=n,positive=k,mean_probability=mean,observed_fraction=fraction,low=float(lo),high=float(hi)))
                 v=np.array(points);ax.errorbar(v[:,0],v[:,1],yerr=np.vstack([v[:,1]-v[:,2],v[:,3]-v[:,1]]),fmt='o-',ms=3.5,lw=1,capsize=2,color=COLORS[spec['predictor_set']])
-            ax.set(xlim=(0,1),ylim=(0,1),xlabel='Mean predicted probability',ylabel='Observed fraction');ax.set_title(algorithm,loc='left',weight='bold');ax.grid(color='#e6eaed',lw=.5)
+            ax.set(xlim=(0,1),ylim=(0,1),xlabel='Mean predicted probability',ylabel='Observed fraction');ax.set_title(f'{chr(65+panel)}. {algorithm}',loc='left',weight='bold');ax.grid(color='#e6eaed',lw=.5)
         axes.flat[-1].set_visible(False);fig.suptitle('Internal PPMI' if cohort=='PPMI_internal' else 'External LY-PD',fontsize=12,weight='bold');fig.subplots_adjust(left=.09,right=.98,top=.94,bottom=.09,hspace=.42,wspace=.3);legend(fig);export(fig,stem)
 def main(presentation_only=False):
     outputs.clear();roc_checks.clear();all_bins.clear()
@@ -115,6 +115,6 @@ def main(presentation_only=False):
     from calibration_bayes100_figure import main as lr_calibration
     lr_calibration(reuse_bins=presentation_only,manifest_path=OUT/'lr_calibration_display_manifest.json')
     outputs.extend(FIG/('figure4_calibration.'+ext) for ext in ['pdf','png'])
-    manifest=dict(status='generated',font_family='Arial',predictive_models_refitted=0,ROC_checks=roc_checks,supplementary_ROC_curves=36,output_sha256={str(f.relative_to(ROOT)):sha(f) for f in outputs},input_sha256={str((OUT/n).relative_to(ROOT)):sha(OUT/n) for n in ['performance.csv','paired_differences.csv','supplementary_calibration_bins.csv']},main_LR_calibration_reused=True,presentation_only=presentation_only,predictor_set_display=PREDICTOR_SET_DISPLAY,calibration_bins_reused=presentation_only)
+    manifest=dict(status='generated',font_family='Arial',predictive_models_refitted=0,ROC_checks=roc_checks,supplementary_ROC_curves=36,output_sha256={str(f.relative_to(ROOT)):sha(f) for f in outputs},input_sha256={str((OUT/n).relative_to(ROOT)):sha(OUT/n) for n in ['performance.csv','paired_differences.csv','supplementary_calibration_bins.csv']},main_LR_calibration_reused=True,presentation_only=presentation_only,predictor_set_display=PREDICTOR_SET_DISPLAY,calibration_bins_reused=presentation_only,supplementary_panel_labels={kind:[f'{chr(65+i)}. {a}' for i,a in enumerate(order)] for kind,order in [('S2/S3',ALGORITHMS),('S4/S5',ALGORITHMS[1:])]})
     write_json(OUT/'figure_manifest.json',manifest);print(json.dumps(dict(status='generated',main_figures=[1,2,3,4],main_figure4_reused=True,supplementary_figures=5,ROC_curves=36,presentation_only=presentation_only)))
 if __name__=='__main__':main(presentation_only='--presentation-only' in sys.argv)

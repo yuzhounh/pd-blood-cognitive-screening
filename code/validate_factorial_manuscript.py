@@ -117,6 +117,16 @@ def validate_presentation():
         assert len(frame)==n
         if 'Set' in frame:assert set(frame.Set)==labels
         assert not re.search(r'\bSet\s+[12]\b',(M/f'tables/{name}.tex').read_text())
+    # B134: headers may wrap; every body cell in these four tables is a single box.
+    no_wrap={'factorial_calibration':(36,6),'factorial_classification_internal':(36,6),
+             'factorial_classification_external':(36,6),'factorial_secondary':(24,5)}
+    for name,(rows,columns) in no_wrap.items():
+        text=(M/f'tables/{name}.tex').read_text()
+        body=text.split(r'\bottomrule\endfoot',1)[1].split(r'\end{longtable}',1)[0]
+        assert body.count(r'\mbox{')==rows*columns
+    calibration_source=(M/'tables/factorial_calibration.tex').read_text()
+    assert r'\ManuscriptTableSize{8.5}{10.5}' in calibration_source
+    assert r'\setlength{\tabcolsep}{2.5pt}' in calibration_source
     for name,record in build['documents'].items():
         assert sha(ROOT/record['pdf'])==record['sha256']
         assert record['compiled_without_errors_or_undefined_references'] and not record['layout_warnings']
