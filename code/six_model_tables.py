@@ -85,7 +85,7 @@ def write_reconstruction_table():
     table('table_s_reconstruction','Ancillary reconstruction using the original published PPMI table',
           ['Algorithm','Reported AUROC','Workflow A AUROC (95% CI)','Workflow B AUROC'],rows,
           RECONSTRUCTION_SPEC,
-          'This ancillary analysis is separate from primary model development. A: split observed participants before training-only SMOTE, development n=1,023, observed test n=256. '
+          'This ancillary analysis is separate from primary model development. Reported AUROC values preserve the two decimal places reported in the source publication; reconstructed AUROC estimates are shown to three decimal places. A: split observed participants before training-only SMOTE, development n=1,023, observed test n=256. '
           'B: full-table SMOTE before splitting, development n=1,260, test n=316 including 63 synthetic records. '
           'B is a non-independent diagnostic scenario. Its score is not assigned an independent-test confidence interval; the workflows do not use identical evaluation participants. \\textbf{Abbreviations:} RF, random forest; NN, neural network; AUROC, area under the receiver operating characteristic curve; CI, confidence interval; SMOTE, synthetic minority oversampling technique.',False,header_lines={'Workflow A AUROC (95% CI)':('Workflow A','AUROC (95% CI)')})
 
