@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+type: software
+title: "pd-blood-cognitive-screening: Incremental value of routine blood markers for cognitive screening in Parkinson's disease: a cross-cohort evaluation"
+version: "1.0.0"
+date-released: "2026-11-20"
+license: MIT
+repository-code: "https://github.com/yuzhounh/pd-blood-cognitive-screening"
+authors:
+  - family-names: Wang
+    given-names: Jing
+    orcid: "https://orcid.org/0000-0002-3286-073X"
+  - family-names: Chen
+    given-names: Yanfang
+  - family-names: Xia
+    given-names: Kunpeng
+keywords:
+  - Parkinson's disease
+  - cognitive screening
+  - routine blood markers
+  - external validation
+  - machine learning
+  - PPMI

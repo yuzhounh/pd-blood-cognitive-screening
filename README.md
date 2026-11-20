@@ -1,35 +1,87 @@
-# Routine blood markers for cognitive screening in Parkinson's disease
+# Routine Blood Markers for Cognitive Screening in Parkinson's Disease
 
-Analysis code for **Incremental value of routine blood markers for cognitive screening in Parkinson's disease: a cross-cohort evaluation**.
+Analysis code evaluating the incremental value of routine blood markers for concurrent cognitive screening in Parkinson's disease across PPMI and an external clinical cohort.
 
-## Current analysis: v4.0, 18 strategies
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Six algorithms (LR, SVM, RF, XGBoost, CatBoost and a three-hidden-layer neural network) are each applied to age alone (Age-only set), five demographic and anthropometric predictors (Basic set), and all 21 basic and blood predictors (Full set). All 18 strategies use the same 969 PPMI training participants, 416 internal-test participants and 197 Luoyang PD cohort (LY-PD) participants. The outcome is concurrent composite cognitive-screening positivity, not longitudinal cognitive decline.
+> **Paper:** Jing Wang, Yanfang Chen, and Kunpeng Xia. *Incremental value of routine blood markers for cognitive screening in Parkinson's disease: a cross-cohort evaluation*.
 
-Each strategy has an independent 100-trial training-only TPE search selected by mean five-fold AUROC. Eight compatible cleaned v3.2 fits were retained; ten reduced-input strategies completed the matrix. The factorial extension is exploratory. Within-algorithm Full set minus Basic set comparisons assess the blood-panel increment: external AUROC point differences were negative for all six algorithms, while Brier-error changes depended on algorithm.
+## Overview
 
-## Code and reproduction
+Six algorithms—logistic regression (LR), support vector machine (SVM), random forest (RF), XGBoost, CatBoost, and a three-hidden-layer neural network (NN)—are crossed with three nested predictor sets: **Age-only set** (1 predictor), **Basic set** (5 demographic and anthropometric predictors), and **Full set** (21 basic and routine blood predictors). All 18 strategies share the same 969 PPMI training participants, 416 PPMI internal-test participants, and 197 external Luoyang PD (LY-PD) participants. Each strategy uses an independent 100-trial training-only tree-structured Parzen estimator (TPE) search with five-fold stratified cross-validation (seed `20261014`). Evaluation quantifies discrimination (AUROC), probability accuracy (Brier score), calibration, and paired within-algorithm Full-set minus Basic-set increments using 2,000 participant bootstrap resamples.
 
-See the [reproduction guide](code/README.md) for prerequisites, the eight-plus-ten training sequence, performance estimation, tables, figures and validation. `code/factorial_protocol.py` defines the complete registry; `code/bayes100.py` supplies the original eight fits and shared learners; `code/factorial_bayes100.py` trains the ten additional fits. Current postprocessing uses `factorial_statistics.py`, `factorial_tables.py` and `factorial_figures.py`.
+## Data Access and Setup
 
-Main Figure 2 reports all 18 strategies in both cohorts; Figure 3 reports six within-algorithm blood-panel increments. Supplementary ROC panels contain 36 curves, and calibration covers all 18 strategies. Main Figure 4 retains the three LR calibration comparisons. The editable [18-strategy workflow SVG](manuscript/figures/figure1_factorial_design.svg) is the maintained source used by the current exporter; the [earlier eight-strategy SVG](manuscript/figures/figure1_study_design.svg) is retained for historical helper compatibility. Table formatting preserves the sign of very small nonzero interval bounds.
+No raw PPMI tables, external participant records, predictions, or trained models are distributed in this repository.
 
-Training used Python 3.12.15 and the versions pinned in `requirements.txt`. `environment_snapshot.json` records all 18 training environments and the separate executed postprocessing environment. Historical helper modules are retained as dependencies; their old main functions are not the current analysis route.
+- **PPMI exports (13 October 2026)**: Obtain via the [PPMI data portal](https://www.ppmi-info.org/access-data-specimens/download-data) (RRID:SCR_006431) under the PPMI Data Use Agreement.
+- **External LY-PD cohort**: Obtain `published_cohorts.xlsx` (`FAHHAUST-PD` worksheet) from the supplementary materials of Wang and Yan (2025), [doi:10.3389/fnagi.2025.1688653](https://doi.org/10.3389/fnagi.2025.1688653).
 
-The current presentation adds A–F algorithm labels to supplementary ROC panels and A–E labels to supplementary calibration panels, retaining the algorithm names and matching internal/external order. Content-based table widths, two-line unit/CI headers, unbreakable dense body cells, compact S1 and a one-page S2B layout are documented in the reproduction guide. S2B CV AUROC and threshold displays use three decimal places; saved full-precision thresholds drive the reported classifications. S8 preserves the source publication's two-decimal reported AUROCs. Use the documented presentation-only route with retained results to refresh displays without retraining or re-estimating bootstrap intervals.
+Place the PPMI CSVs in `data/raw/ppmi/` (or set `PPMI_DATA_DIR` to a shared PPMI directory) and `published_cohorts.xlsx` in `data/raw/`. See [data/README.md](data/README.md) for the file list.
 
-Figure 1's maintained SVG now has uniformly sized stage icons, the `3 predictor sets × 6 algorithms` explanation, balanced stage-3 vertical spacing, and equal stage-2 card-row gaps with a shared bottom edge against stage 3. The S2/S3 generator uses separate left-aligned name and AUROC legend columns. Figure 1's editable SVG and the Python plotting source for S2/S3 are included; required private prediction inputs remain subject to the documented prerequisites. The latest source synchronization did not rerun experiments.
+```bash
+export PPMI_DATA_DIR=/path/to/ppmi/blood_clinical_20261014
+# PowerShell: $env:PPMI_DATA_DIR = 'D:\path\to\ppmi\blood_clinical_20261014'
+```
 
-## Data and artifact access
+## Environment and Usage
 
-PPMI exports must be obtained by authorized researchers through the [PPMI data portal](https://www.ppmi-info.org/access-data-specimens/download-data). The external LY-PD cohort originated in the FAHHAUST-PD worksheet in [Wang and Yan's supplementary materials](https://doi.org/10.3389/fnagi.2025.1688653). Input versions, participant order, outcome labels and the frozen split must match the recorded protocol before a reproduction is comparable.
+Model training used Python 3.12.15 with package versions pinned in [requirements.txt](requirements.txt) (see also [environment_snapshot.json](environment_snapshot.json)).
 
-This is a source-code release. Raw or derived participant records, identifiers, individual predictions, fitted models, private input manifests, and the full author manuscript workspace are not distributed. The scripts require authorized inputs and, for postprocessing-only reproduction, the retained predictions and supporting aggregate receipts described in the guide. A code checkout alone cannot build the manuscript or reproduce private saved estimates. No new model training was performed for this code synchronization.
+```bash
+python -m pip install -r requirements.txt
 
-## Contact
+# 1. Cohort alignment, split verification, and cleaned input arrays
+python prepare_cog_ppmi.py
+python rematch_body_pm3.py
+python freeze_cog_split.py --check
+python prepare_bayes100_inputs.py --check
 
-Jing Wang, Xinyang Normal University. Email: wangjing@xynu.edu.cn.
+# 2. Model training (8 full/LR strategies + 10 reduced-input factorial strategies)
+python bayes100.py --trials 100 --workers 1 --models Age_LR Basic_LR LR SVM RF XGBoost CatBoost NN
+python factorial_preflight.py
+python factorial_bayes100.py --workers 1
 
-## Predictor-set display names
+# 3. Performance estimation, tables, and empirical result figures
+python factorial_statistics.py
+python factorial_tables.py
+python factorial_figures.py
+```
 
-Reader-facing labels are Age-only set (1 predictor), Basic set (5 predictors), and Full set (21 predictors). `display_labels.py` maps the immutable result keys `Set 1` and `Set 2` to the semantic names. Existing strategy IDs, receipt filenames, prediction arrays, and unrounded result CSVs retain their original keys for compatibility.
+Run the synthetic unit tests without private data:
+
+```bash
+python -m unittest discover -s tests -t .
+```
+
+Generated statistical tables and result figures are written locally under `outputs/`.
+
+## Repository Structure
+
+```text
+pd-blood-cognitive-screening/
+├── README.md                          # Overview and reproduction instructions
+├── LICENSE                            # MIT license
+├── CITATION.cff                       # Citation metadata
+├── requirements.txt                   # Pinned Python dependencies
+├── environment_snapshot.json          # Recorded training/postprocessing environment metadata
+├── prepare_current_ppmi.py / prepare_cog_ppmi.py / rematch_body_pm3.py
+├── body_rules.py / body_window.py / common_preprocessing.py / freeze_cog_split.py
+├── prepare_bayes100_inputs.py / factorial_protocol.py / factorial_preprocessing.py
+├── bayes100.py / factorial_preflight.py / factorial_bayes100.py / finalize_bayes100.py
+├── factorial_results.py / factorial_statistics.py / prediction_intervals.py
+├── calibration_likelihood.py / display_labels.py / pilot.py / validate_bayes100.py
+├── factorial_tables.py / paper_bayes100_tables.py / six_model_tables.py
+├── factorial_figures.py / calibration_bayes100_figure.py / manuscript_statistics.py
+├── tests/                             # Synthetic unit tests
+│   ├── test_body_window.py
+│   └── test_scientific_behavior.py
+└── data/
+    └── README.md                      # Data access and directory setup
+```
+
+## License and Contact
+
+Released under the [MIT License](LICENSE). PPMI data and the external cohort remain subject to their respective data-use agreements and licenses.
+
+Correspondence: Jing Wang (`wangjing@xynu.edu.cn`).
